@@ -2236,6 +2236,10 @@
     }
 
     function renderPatientData() {
+      const isChild = state.patientType === 'child';
+      const nameLabel = isChild ? 'Numele copilului' : 'Nume complet';
+      const nameHint = isChild ? '<div class="form-hint">Te rog să introduci numele copilului</div>' : '';
+      
       return `
         <div class="section">
           <div class="section-header">
@@ -2247,13 +2251,14 @@
           
           <div class="form-section">
             <div class="form-group">
-              <label class="form-label">Nume complet <span class="required">*</span></label>
+              <label class="form-label">${nameLabel} <span class="required">*</span></label>
               <input type="text" 
                      id="patient-name"
                      class="form-input" 
-                     placeholder="ex: Ion Popescu"
+                     placeholder="${isChild ? 'ex: Maria Popescu' : 'ex: Ion Popescu'}"
                      value="${state.patientName}"
                      oninput="updatePatientButton()">
+              ${nameHint}
             </div>
             
             <div class="form-group">
@@ -2326,6 +2331,69 @@
       render();
     }
 
+    function getServiceNotes() {
+      const notes = [];
+      
+      // Psihiatrie pediatrică
+      if (state.serviceType === 'psihiatrie-copil') {
+        notes.push({
+          title: '📋 Documente necesare',
+          content: `
+            <ul style="margin: 8px 0; padding-left: 20px; font-size: 11px;">
+              <li>Copie certificat naștere și CI/BI copil</li>
+              <li>Copii CI/BI ambii părinți</li>
+              <li>Dosar medical (dacă există)</li>
+              <li>Dacă un părinte lipsește: acord semnat trimis pe mail înainte</li>
+            </ul>
+            <div style="font-size: 11px; margin-top: 8px;">📧 Trimite documentele la <strong>office@themind.ro</strong></div>
+          `
+        });
+      }
+      
+      // Psihoterapie copii/adolescenți
+      if (state.serviceType === 'psihoterapie-copil' || state.serviceType === 'psihoterapie-adolescent') {
+        notes.push({
+          title: '👨‍👩‍👧 Prima ședință',
+          content: `
+            <div style="font-size: 11px;">
+              La prima ședință vor veni <strong>doar părinții, fără copil</strong>.<br><br>
+              Dacă ambii părinți nu pot fi prezenți, avem nevoie de acordul părintelui absent 
+              (inclusiv în cazul părinților divorțați/separați). Anunță-ne în prealabil pentru a trimite formularul.
+            </div>
+          `
+        });
+      }
+      
+      // Logopedie
+      if (state.serviceType === 'logopedie') {
+        notes.push({
+          title: '👨‍👩‍👧 Prima ședință',
+          content: `
+            <div style="font-size: 11px;">
+              La prima ședință părinții vor însoți copilul pentru a semna acordul informat.<br><br>
+              Dacă ambii părinți nu pot fi prezenți, avem nevoie de acordul părintelui absent. 
+              Anunță-ne în prealabil pentru a trimite formularul.
+            </div>
+          `
+        });
+      }
+      
+      // Psihiatrie adulți
+      if (state.serviceType === 'psihiatrie-adult') {
+        notes.push({
+          title: '📋 De adus la consultație',
+          content: `
+            <div style="font-size: 11px;">
+              • Carte de identitate / Buletin<br>
+              • Documente medicale de la alți psihiatri (dacă există)
+            </div>
+          `
+        });
+      }
+      
+      return notes;
+    }
+
     function renderConfirm() {
       const doc = state.selectedDoctor;
       const date = parseDateString(state.selectedDate);
@@ -2334,6 +2402,7 @@
       const locationName = state.sessionFormat === 'online' ? 'Online' : LOCATIONS[state.locationId]?.name;
       const price = calculatePrice(state.serviceType, doc.DoctorType, state.language);
       const reason = state.selectedReason === 'other' ? state.otherReason : state.selectedReason;
+      const serviceNotes = getServiceNotes();
 
       return `
         <div class="section">
@@ -2412,6 +2481,21 @@
             </div>
           </div>
           
+          ${serviceNotes.length > 0 ? `
+            ${serviceNotes.map(note => `
+              <div style="margin-bottom: 12px; padding: 12px; background: var(--primary-light); border-radius: 10px; border-left: 3px solid var(--primary);">
+                <div style="font-weight: 600; font-size: 12px; color: var(--primary); margin-bottom: 6px;">${note.title}</div>
+                ${note.content}
+              </div>
+            `).join('')}
+          ` : ''}
+          
+          <div style="margin-bottom: 16px; padding: 12px; background: var(--warning-light); border-radius: 10px; font-size: 11px; color: var(--warning);">
+            <strong>⚠️ Politica de anulare:</strong><br>
+            Dacă ai nevoie să anulezi, te rugăm să ne anunți cu minim 24 de ore înainte, altfel ședința va fi tarifată. 
+            Prin programare rezervi timpul unui specialist, o resursă finită și prețioasă.
+          </div>
+          
           <button class="btn-primary" onclick="submitBooking()">Confirmă programarea</button>
           <button class="btn-secondary" onclick="goBack()">Modifică datele</button>
         </div>
@@ -2422,17 +2506,58 @@
       const doc = state.selectedDoctor;
       const date = parseDateString(state.selectedDate);
       const dateDisplay = `${DAY_NAMES[date.getDay()]}, ${date.getDate()} ${MONTHS_RO[date.getMonth()]}`;
+      
+      // Full protocol for psihiatrie pediatrica
+      const isPsihiatriePediatrica = state.serviceType === 'psihiatrie-copil';
 
       return `
-        <div class="success-container">
-          <div class="success-icon">✅</div>
-          <div class="success-title">Programare confirmată!</div>
-          <div class="success-message">
-            Te-ai programat la <strong>${doc.Name}</strong>, <strong>${dateDisplay}</strong> la ora <strong>${state.selectedTime.time}</strong>.<br><br>
-            Vei primi un SMS de confirmare la numărul <strong>${state.patientPhone}</strong>.<br><br>
-            <span style="color: var(--primary); font-style: italic;">Îți mulțumim că ai ales The Mind. Ai făcut un pas important!</span>
+        <div class="success-container" style="text-align: left; padding: 20px;">
+          <div style="text-align: center;">
+            <div class="success-icon">✅</div>
+            <div class="success-title">Programare confirmată!</div>
+            <div class="success-message" style="margin-bottom: 20px;">
+              Te-ai programat la <strong>${doc.Name}</strong>, <strong>${dateDisplay}</strong> la ora <strong>${state.selectedTime.time}</strong>.<br><br>
+              Vei primi un SMS de confirmare la numărul <strong>${state.patientPhone}</strong>.<br><br>
+              <span style="color: var(--primary); font-style: italic;">Îți mulțumim că ai ales The Mind. Ai făcut un pas important!</span>
+            </div>
           </div>
-          <button class="btn-primary" onclick="resetBooking()">Programare nouă</button>
+          
+          ${isPsihiatriePediatrica ? `
+            <div style="background: var(--primary-light); border-radius: 12px; padding: 16px; margin-bottom: 16px; border-left: 4px solid var(--primary);">
+              <div style="font-weight: 700; font-size: 14px; color: var(--primary); margin-bottom: 12px;">📋 Protocol Psihiatrie Pediatrică</div>
+              
+              <div style="font-size: 12px; margin-bottom: 12px;">
+                <strong>1. Documente necesare:</strong>
+                <ul style="margin: 6px 0; padding-left: 18px;">
+                  <li>Copie certificat naștere și CI/BI copil</li>
+                  <li>Copii CI/BI ambii părinți</li>
+                  <li>Dosar medical / acte medicale (dacă există)</li>
+                  <li>Părinți divorțați/separați: hotărâre judecătorească</li>
+                  <li>Părinte decedat: copie certificat deces</li>
+                  <li>Părinte absent: acord semnat, trimis pe mail înainte</li>
+                </ul>
+              </div>
+              
+              <div style="font-size: 12px; margin-bottom: 12px;">
+                <strong>2. Trimitere documente:</strong><br>
+                Trimite documentele pe <strong>office@themind.ro</strong> înainte de programare.
+              </div>
+              
+              <div style="font-size: 12px; margin-bottom: 12px;">
+                <strong>3. Tipul ședințelor:</strong><br>
+                • Evaluarea inițială se realizează doar la clinică<br>
+                • Ședințele ulterioare pot fi online (cu acordul medicului)
+              </div>
+              
+              <div style="font-size: 12px; background: var(--accent-light); padding: 10px; border-radius: 8px;">
+                <strong>⚠️ Important:</strong> Programarea se face întotdeauna pe numele copilului.
+              </div>
+            </div>
+          ` : ''}
+          
+          <div style="text-align: center;">
+            <button class="btn-primary" onclick="resetBooking()">Programare nouă</button>
+          </div>
         </div>
       `;
     }
