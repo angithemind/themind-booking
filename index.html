@@ -894,7 +894,7 @@
   <div class="app-container" id="app">
     <div class="loading-container">
       <div class="spinner"></div>
-      <div class="loading-text">Se încarcă...</div>
+      <div class="loading-text">O secundă...</div>
     </div>
   </div>
 
@@ -941,7 +941,7 @@
       '2': { name: 'Primăverii', address: 'Bd. Primăverii 39' }
     };
 
-    // Age groups
+    // Age groups for selection
     const AGE_GROUPS_ADULT = [
       { key: '18-30', label: '18 - 30 ani', min: 18, max: 30 },
       { key: '30+', label: 'Peste 30 ani', min: 31, max: 99 }
@@ -954,6 +954,10 @@
 
     const AGE_GROUPS_LOGOPEDIE = [
       { key: '3-14', label: '3 - 14 ani', min: 3, max: 14 }
+    ];
+
+    const AGE_GROUPS_PSIHIATRIE_COPIL = [
+      { key: '0-18', label: '0 - 18 ani', min: 0, max: 18 }
     ];
 
     // Reasons by category
@@ -1487,16 +1491,16 @@
       currentIndex--;
       
       if (state.flowType === 'guided') {
-        // Skip age-group if psihiatrie-copil (it's automatic 0-18)
-        if (steps[currentIndex] === 'age-group' && state.serviceType === 'psihiatrie-copil') {
-          currentIndex--;
-        }
-        // Skip format if not psihoterapie
+        // Skip format if not psihoterapie (psihiatrie and logopedie are cabinet only)
         if (steps[currentIndex] === 'format' && !state.serviceType?.includes('psihoterapie')) {
           currentIndex--;
         }
-        // Skip location if online
-        if (steps[currentIndex] === 'location' && state.sessionFormat === 'online') {
+        // Skip location if online OR if psihiatrie-copil (only Primaverii)
+        if (steps[currentIndex] === 'location' && (state.sessionFormat === 'online' || state.serviceType === 'psihiatrie-copil')) {
+          currentIndex--;
+        }
+        // After skipping location, also skip format if needed
+        if (steps[currentIndex] === 'format' && !state.serviceType?.includes('psihoterapie')) {
           currentIndex--;
         }
       }
@@ -1542,12 +1546,12 @@
       const app = document.getElementById('app');
       
       if (state.loading) {
-        app.innerHTML = renderLoading('Se încarcă specialiștii...');
+        app.innerHTML = renderLoading('Se încarcă disponibilitățile...');
         return;
       }
 
       const renderers = {
-        'loading': () => renderLoading('Se încarcă...'),
+        'loading': () => renderLoading('O secundă...'),
         'start': renderStart,
         'search': renderSearch,
         'search-reason': renderSearchReason,
@@ -1888,7 +1892,12 @@
         // Logopedie: doar 3-14 ani
         ageGroups = AGE_GROUPS_LOGOPEDIE;
         title = 'Logopedie este disponibilă pentru vârsta 3-14 ani';
+      } else if (state.serviceType === 'psihiatrie-copil') {
+        // Psihiatrie pediatrică: 0-18 ani
+        ageGroups = AGE_GROUPS_PSIHIATRIE_COPIL;
+        title = 'Psihiatrie pediatrică (0-18 ani)';
       } else {
+        // Psihoterapie copii/adolescenti
         ageGroups = AGE_GROUPS_CHILD;
       }
 
@@ -2540,16 +2549,8 @@
 
     function selectService(service) {
       state.serviceType = service;
-      
-      // Psihiatrie pediatrică - nu cere vârstă, e 0-18 automat
-      if (service === 'psihiatrie-copil') {
-        state.selectedAgeGroup = { key: '0-18', label: '0-18 ani', min: 0, max: 18 };
-        state.sessionFormat = 'cabinet';
-        state.step = 'location';
-      } else {
-        // Toate celelalte servicii cer selectarea vârstei
-        state.step = 'age-group';
-      }
+      // ALL services go to age-group selection
+      state.step = 'age-group';
       render();
     }
 
