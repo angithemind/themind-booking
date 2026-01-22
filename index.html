@@ -913,8 +913,16 @@
     // =====================================================
     const MONTHS_RO = ['Ianuarie', 'Februarie', 'Martie', 'Aprilie', 'Mai', 'Iunie', 
                        'Iulie', 'August', 'Septembrie', 'Octombrie', 'Noiembrie', 'Decembrie'];
-    const DAYS_RO = ['Du', 'Lu', 'Ma', 'Mi', 'Jo', 'Vi', 'Sâ'];
+    // Monday first
+    const DAYS_RO = ['Lu', 'Ma', 'Mi', 'Jo', 'Vi', 'Sâ', 'Du'];
+    // Index 0 = Sunday in JS, so we keep this for getDay() but use helper function
     const DAY_NAMES = ['Duminică', 'Luni', 'Marți', 'Miercuri', 'Joi', 'Vineri', 'Sâmbătă'];
+    
+    // Helper to parse date string safely (avoids timezone issues)
+    function parseDateString(dateStr) {
+      const [year, month, day] = dateStr.split('-').map(Number);
+      return new Date(year, month - 1, day);
+    }
 
     const SERVICE_TYPES = {
       'psihoterapie-adult': { label: 'Psihoterapie adulți', api: 'Psihoterapie adulti' },
@@ -2029,7 +2037,9 @@
 
       const year = state.currentMonth.getFullYear();
       const month = state.currentMonth.getMonth();
-      const firstDay = new Date(year, month, 1).getDay();
+      // Convert Sunday=0 to Monday-first: Monday=0, Tuesday=1, ..., Sunday=6
+      const firstDayJS = new Date(year, month, 1).getDay();
+      const firstDay = (firstDayJS + 6) % 7; // Convert to Monday-first
       const daysInMonth = new Date(year, month + 1, 0).getDate();
       const today = new Date();
       today.setHours(0, 0, 0, 0);
@@ -2099,7 +2109,7 @@
       const locationForSlots = state.sessionFormat === 'online' ? null : state.locationId;
       const timeSlots = getTimeSlotsForDoctorDate(doc.DoctorId, state.selectedDate, locationForSlots);
       
-      const date = new Date(state.selectedDate);
+      const date = parseDateString(state.selectedDate);
       const dateDisplay = `${DAY_NAMES[date.getDay()]}, ${date.getDate()} ${MONTHS_RO[date.getMonth()]}`;
 
       return `
@@ -2227,7 +2237,7 @@
 
     function renderConfirm() {
       const doc = state.selectedDoctor;
-      const date = new Date(state.selectedDate);
+      const date = parseDateString(state.selectedDate);
       const dateDisplay = `${DAY_NAMES[date.getDay()]}, ${date.getDate()} ${MONTHS_RO[date.getMonth()]} ${date.getFullYear()}`;
       const serviceLabel = SERVICE_TYPES[state.serviceType]?.label || '';
       const locationName = state.sessionFormat === 'online' ? 'Online' : LOCATIONS[state.locationId]?.name;
@@ -2319,7 +2329,7 @@
 
     function renderSuccess() {
       const doc = state.selectedDoctor;
-      const date = new Date(state.selectedDate);
+      const date = parseDateString(state.selectedDate);
       const dateDisplay = `${DAY_NAMES[date.getDay()]}, ${date.getDate()} ${MONTHS_RO[date.getMonth()]}`;
 
       return `
