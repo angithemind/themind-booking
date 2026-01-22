@@ -1117,7 +1117,7 @@
         console.error('Init error:', err);
         state.loading = false;
         state.step = 'error';
-        state.errorMessage = 'Nu am putut încărca datele. Vă rugăm reîncărcați pagina.';
+        state.errorMessage = 'Nu am putut încărca datele. Te rugăm reîncarcă pagina.';
       }
 
       render();
@@ -1458,7 +1458,7 @@
       } catch (err) {
         console.error('Booking error:', err);
         state.step = 'error';
-        state.errorMessage = 'Nu am putut finaliza programarea. Vă rugăm contactați-ne telefonic la 021.781.22.59';
+        state.errorMessage = 'Nu am putut finaliza programarea. Te rugăm contactează-ne telefonic la 021.781.22.59';
       }
 
       state.bookingInProgress = false;
@@ -1639,7 +1639,7 @@
           <div class="section-header">
             <div>
               <div class="section-title">Bun venit!</div>
-              <div class="section-subtitle">Cum doriți să continuați?</div>
+              <div class="section-subtitle">Cum dorești să continui?</div>
             </div>
           </div>
           
@@ -1673,7 +1673,7 @@
             </button>
             <div>
               <div class="section-title">Căutare specialist</div>
-              <div class="section-subtitle">Introduceți numele sau specializarea</div>
+              <div class="section-subtitle">Introdu numele sau specializarea</div>
             </div>
           </div>
           
@@ -1692,7 +1692,7 @@
             ${state.filteredDoctors.length === 0 ? `
               <div class="empty-state">
                 <div class="icon">🔍</div>
-                <div>${state.searchQuery ? 'Nu am găsit specialiști. Încercați alt termen.' : 'Începeți să scrieți pentru a căuta...'}</div>
+                <div>${state.searchQuery ? 'Nu am găsit specialiști. Încearcă alt termen.' : 'Începe să scrii pentru a căuta...'}</div>
               </div>
             ` : state.filteredDoctors.map(doc => renderDoctorCard(doc, 'selectDoctorFromSearch')).join('')}
           </div>
@@ -1758,7 +1758,7 @@
             <button class="back-btn" onclick="goBack()">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
             </button>
-            <div class="section-title">Cum preferați ședința?</div>
+            <div class="section-title">Cum preferi ședința?</div>
           </div>
           
           <div class="options-row">
@@ -1782,7 +1782,7 @@
             <button class="back-btn" onclick="goBack()">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
             </button>
-            <div class="section-title">La ce locație doriți?</div>
+            <div class="section-title">La ce locație dorești?</div>
           </div>
           
           <div class="options-grid">
@@ -1807,7 +1807,7 @@
             <button class="back-btn" onclick="goBack()">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
             </button>
-            <div class="section-title">În ce limbă preferați ședința?</div>
+            <div class="section-title">În ce limbă preferi ședința?</div>
           </div>
           
           <div class="options-row">
@@ -1864,7 +1864,7 @@
             <button class="back-btn" onclick="goBack()">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
             </button>
-            <div class="section-title">Ce tip de serviciu căutați?</div>
+            <div class="section-title">Ce tip de serviciu cauți?</div>
           </div>
           
           <div class="options-grid">
@@ -1884,7 +1884,7 @@
 
     function renderAgeGroup() {
       let ageGroups = [];
-      let title = 'Selectați grupa de vârstă';
+      let title = 'Selectează grupa de vârstă';
       
       if (state.patientType === 'adult') {
         ageGroups = AGE_GROUPS_ADULT;
@@ -1937,7 +1937,7 @@
           
           ${state.serviceType === 'logopedie' ? `
             <div style="margin-top: 16px; padding: 12px; background: var(--warning-light); border-radius: 10px; font-size: 12px; color: var(--warning);">
-              ⚠️ Pentru vârste de 15+ ani, vă rugăm să ne contactați telefonic la <a href="tel:0217812259" style="color: inherit; font-weight: 600;">021.781.22.59</a>
+              ⚠️ Pentru vârste de 15+ ani, te rugăm să ne contactezi telefonic la <a href="tel:0217812259" style="color: inherit; font-weight: 600;">021.781.22.59</a>
             </div>
           ` : ''}
         </div>
@@ -1951,7 +1951,7 @@
             <button class="back-btn" onclick="goBack()">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
             </button>
-            <div class="section-title">Cum preferați ședința?</div>
+            <div class="section-title">Cum preferi ședința?</div>
           </div>
           
           <div class="options-row">
@@ -1984,7 +1984,7 @@
             <button class="back-btn" onclick="goBack()">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
             </button>
-            <div class="section-title">La ce locație doriți?</div>
+            <div class="section-title">La ce locație dorești?</div>
           </div>
           
           <div class="options-grid">
@@ -2017,7 +2017,7 @@
             <button class="back-btn" onclick="goBack()">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
             </button>
-            <div class="section-title">În ce limbă preferați ședința?</div>
+            <div class="section-title">În ce limbă preferi ședința?</div>
           </div>
           
           <div class="options-row">
@@ -2085,7 +2085,7 @@
             <button class="back-btn" onclick="goBack()">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
             </button>
-            <div class="section-title">Alegeți specialistul</div>
+            <div class="section-title">Alege specialistul</div>
           </div>
           
           <div class="doctors-list">
@@ -2165,7 +2165,7 @@
             <button class="back-btn" onclick="goBack()">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
             </button>
-            <div class="section-title">Alegeți data</div>
+            <div class="section-title">Alege data</div>
           </div>
           
           <div class="selected-badge">
@@ -2209,7 +2209,7 @@
             <button class="back-btn" onclick="goBackFromTime()">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
             </button>
-            <div class="section-title">Alegeți ora</div>
+            <div class="section-title">Alege ora</div>
           </div>
           
           <div class="selected-badge">
@@ -2242,7 +2242,7 @@
             <button class="back-btn" onclick="goBack()">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
             </button>
-            <div class="section-title">Datele dumneavoastră</div>
+            <div class="section-title">Datele tale</div>
           </div>
           
           <div class="form-section">
@@ -2264,7 +2264,7 @@
                      placeholder="ex: 0751234567"
                      value="${state.patientPhone}"
                      oninput="updatePatientButton(); handlePhoneInput(this.value)">
-              <div class="form-hint">Veți primi SMS de confirmare la acest număr</div>
+              <div class="form-hint">Vei primi SMS de confirmare la acest număr</div>
               <div id="phone-status"></div>
             </div>
             
@@ -2428,9 +2428,9 @@
           <div class="success-icon">✅</div>
           <div class="success-title">Programare confirmată!</div>
           <div class="success-message">
-            V-ați programat la <strong>${doc.Name}</strong>, <strong>${dateDisplay}</strong> la ora <strong>${state.selectedTime.time}</strong>.<br><br>
-            Veți primi un SMS de confirmare la numărul <strong>${state.patientPhone}</strong>.<br><br>
-            <span style="color: var(--primary); font-style: italic;">Vă mulțumim că ați ales The Mind. Abia așteptăm să vă cunoaștem!</span>
+            Te-ai programat la <strong>${doc.Name}</strong>, <strong>${dateDisplay}</strong> la ora <strong>${state.selectedTime.time}</strong>.<br><br>
+            Vei primi un SMS de confirmare la numărul <strong>${state.patientPhone}</strong>.<br><br>
+            <span style="color: var(--primary); font-style: italic;">Îți mulțumim că ai ales The Mind. Ai făcut un pas important!</span>
           </div>
           <button class="btn-primary" onclick="resetBooking()">Programare nouă</button>
         </div>
@@ -2442,7 +2442,7 @@
         <div class="error-container">
           <div class="error-icon">❌</div>
           <div class="error-title">A apărut o eroare</div>
-          <div class="error-message">${state.errorMessage || 'Nu am putut finaliza programarea. Vă rugăm contactați-ne telefonic la 021.781.22.59'}</div>
+          <div class="error-message">${state.errorMessage || 'Nu am putut finaliza programarea. Te rugăm contactează-ne telefonic la 021.781.22.59'}</div>
           <button class="btn-primary" onclick="resetBooking()">Începe de la capăt</button>
           <a href="tel:0217812259" class="btn-secondary" style="display: block; text-align: center; text-decoration: none;">📞 Sună: 021.781.22.59</a>
         </div>
