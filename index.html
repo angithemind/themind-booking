@@ -925,18 +925,36 @@
     }
 
     const SERVICE_TYPES = {
-      'psihoterapie-adult': { label: 'Psihoterapie adulți', api: 'Psihoterapie adulti' },
-      'psihoterapie-copil': { label: 'Psihoterapie copii', api: 'Psihoterapie copii si adolescenti' },
-      'psihoterapie-cuplu': { label: 'Psihoterapie cuplu', api: 'Psihoterapie cuplu' },
-      'psihiatrie-adult': { label: 'Psihiatrie adulți', api: 'Psihiatrie adulti' },
-      'psihiatrie-copil': { label: 'Psihiatrie pediatrică', api: 'Psihiatrie pediatrica' },
-      'logopedie': { label: 'Logopedie', api: 'Logopedie' }
+      // Adulți
+      'psihoterapie-adult': { label: 'Psihoterapie individuală', airtable: 'Psihoterapie adulti', api: 'Psihoterapie adulti' },
+      'psihoterapie-cuplu': { label: 'Psihoterapie de cuplu', airtable: 'Psihoterapie cuplu', api: 'Psihoterapie cuplu' },
+      'psihiatrie-adult': { label: 'Psihiatrie', airtable: 'Psihiatrie adulti', api: 'Psihiatrie adulti' },
+      // Copii/Adolescenți
+      'psihoterapie-copil': { label: 'Psihoterapie copii', airtable: 'Psihoterapie copii', api: 'Psihoterapie copii' },
+      'psihoterapie-adolescent': { label: 'Psihoterapie adolescenți', airtable: 'Psihoterapie adolescenti', api: 'Psihoterapie adolescenti' },
+      'psihiatrie-copil': { label: 'Psihiatrie pediatrică', airtable: 'Psihiatrie pediatrica', api: 'Psihiatrie pediatrica' },
+      'logopedie': { label: 'Logopedie', airtable: 'Logopedie', api: 'Logopedie' }
     };
 
     const LOCATIONS = {
       '1': { name: 'Cotroceni', address: 'Str. Dr. Carol Davila 34' },
       '2': { name: 'Primăverii', address: 'Bd. Primăverii 39' }
     };
+
+    // Age groups
+    const AGE_GROUPS_ADULT = [
+      { key: '18-30', label: '18 - 30 ani', min: 18, max: 30 },
+      { key: '30+', label: 'Peste 30 ani', min: 31, max: 99 }
+    ];
+
+    const AGE_GROUPS_CHILD = [
+      { key: '3-13', label: '3 - 13 ani', min: 3, max: 13 },
+      { key: '14-18', label: '14 - 18 ani', min: 14, max: 18 }
+    ];
+
+    const AGE_GROUPS_LOGOPEDIE = [
+      { key: '3-14', label: '3 - 14 ani', min: 3, max: 14 }
+    ];
 
     // Reasons by category
     const REASONS_ADULT = [
@@ -969,9 +987,9 @@
 
     // Price calculation
     function calculatePrice(serviceType, doctorType, language) {
-      const isEnglish = language === 'English';
+      const isEnglish = language === 'Engleza';
       
-      if (serviceType === 'psihoterapie-adult' || serviceType === 'psihoterapie-copil') {
+      if (serviceType === 'psihoterapie-adult' || serviceType === 'psihoterapie-copil' || serviceType === 'psihoterapie-adolescent') {
         return isEnglish ? 320 : 290;
       }
       if (serviceType === 'psihoterapie-cuplu') {
@@ -1010,6 +1028,7 @@
       // Selections
       patientType: null,
       serviceType: null,
+      selectedAgeGroup: null, // { key, label, min, max }
       childAge: null,
       sessionFormat: null,
       locationId: null,
@@ -1197,45 +1216,71 @@
     function filterDoctorsByService() {
       let doctors = [...state.allDoctors];
       
+      console.log('Filtering doctors. Total:', doctors.length);
+      console.log('Filters:', {
+        serviceType: state.serviceType,
+        ageGroup: state.selectedAgeGroup,
+        locationId: state.locationId,
+        sessionFormat: state.sessionFormat,
+        language: state.language
+      });
+      
+      // Filter by Active (should already be filtered from Airtable, but just in case)
+      doctors = doctors.filter(d => d.Active !== false);
+      
       // Filter by specialty based on service type
       if (state.serviceType) {
-        const serviceApi = SERVICE_TYPES[state.serviceType]?.api || '';
+        const airtableSpecialty = SERVICE_TYPES[state.serviceType]?.airtable || '';
+        console.log('Looking for specialty:', airtableSpecialty);
+        
         doctors = doctors.filter(d => {
           const specialties = d.SpecialtyType || [];
-          // Match by checking if any specialty contains part of the service
-          return specialties.some(s => {
-            const sLower = s.toLowerCase();
-            if (state.serviceType.includes('psihoterapie')) return sLower.includes('psihoterapie');
-            if (state.serviceType.includes('psihiatrie')) return sLower.includes('psihiatrie');
-            if (state.serviceType === 'logopedie') return sLower.includes('logoped');
-            return false;
-          });
+          const hasSpecialty = specialties.some(s => 
+            s.toLowerCase().trim() === airtableSpecialty.toLowerCase().trim()
+          );
+          if (!hasSpecialty) {
+            console.log('Doctor', d.Name, 'excluded - specialties:', specialties);
+          }
+          return hasSpecialty;
         });
+        console.log('After specialty filter:', doctors.length);
       }
       
-      // Filter by location
+      // Filter by location (only if cabinet, not online)
       if (state.locationId && state.sessionFormat === 'cabinet') {
         doctors = doctors.filter(d => {
           const locIds = String(d.LocationIds || '').split(',').map(s => s.trim());
           return locIds.includes(state.locationId);
         });
+        console.log('After location filter:', doctors.length);
       }
       
-      // Filter by age
-      if (state.patientType === 'child' && state.childAge) {
+      // Filter by age group
+      if (state.selectedAgeGroup) {
+        const ageMin = state.selectedAgeGroup.min;
+        const ageMax = state.selectedAgeGroup.max;
+        
         doctors = doctors.filter(d => {
-          const minAge = d.AgeGroupMin || 0;
-          const maxAge = d.AgeGroupMax || 99;
-          return state.childAge >= minAge && state.childAge <= maxAge;
+          const docMin = d.AgeGroupMin || 0;
+          const docMax = d.AgeGroupMax || 99;
+          // Doctor's range should overlap with selected range
+          // Doctor can see patient if: docMin <= ageMax AND docMax >= ageMin
+          const canSee = docMin <= ageMax && docMax >= ageMin;
+          if (!canSee) {
+            console.log('Doctor', d.Name, 'excluded - age range:', docMin, '-', docMax, 'vs', ageMin, '-', ageMax);
+          }
+          return canSee;
         });
+        console.log('After age filter:', doctors.length);
       }
       
       // Filter by language
       if (state.language) {
         doctors = doctors.filter(d => {
           const langs = d.Languages || [];
-          return langs.some(l => l.toLowerCase() === state.language.toLowerCase());
+          return langs.some(l => l.toLowerCase().trim() === state.language.toLowerCase().trim());
         });
+        console.log('After language filter:', doctors.length);
       }
       
       // Add slot counts
@@ -1245,26 +1290,36 @@
         slotsCount: getDoctorSlots(d.DoctorId, locationForSlots).length
       })).filter(d => d.slotsCount > 0);
       
+      console.log('After slots filter:', doctors.length);
+      
       doctors.sort((a, b) => b.slotsCount - a.slotsCount);
       state.filteredDoctors = doctors;
     }
 
     function searchDoctors(query) {
-      if (!query.trim()) {
-        state.filteredDoctors = state.allDoctors.filter(d => getDoctorSlots(d.DoctorId).length > 0)
-          .map(d => ({ ...d, slotsCount: getDoctorSlots(d.DoctorId).length }))
-          .sort((a, b) => b.slotsCount - a.slotsCount);
-        return;
+      // Show ALL active doctors with slots
+      let doctors = state.allDoctors.filter(d => d.Active !== false);
+      
+      // Add slot counts
+      doctors = doctors.map(d => ({
+        ...d,
+        slotsCount: getDoctorSlots(d.DoctorId).length
+      })).filter(d => d.slotsCount > 0);
+      
+      // Filter by search query if provided
+      if (query && query.trim()) {
+        const q = query.toLowerCase().trim();
+        doctors = doctors.filter(d => {
+          const name = (d.Name || '').toLowerCase();
+          const specialty = (d.ShortBio || '').toLowerCase();
+          const specialties = (d.SpecialtyType || []).join(' ').toLowerCase();
+          return name.includes(q) || specialty.includes(q) || specialties.includes(q);
+        });
       }
       
-      const q = query.toLowerCase();
-      state.filteredDoctors = state.allDoctors.filter(d => {
-        const name = (d.Name || '').toLowerCase();
-        const specialty = (d.ShortBio || '').toLowerCase();
-        return name.includes(q) || specialty.includes(q);
-      }).map(d => ({ ...d, slotsCount: getDoctorSlots(d.DoctorId).length }))
-        .filter(d => d.slotsCount > 0)
-        .sort((a, b) => b.slotsCount - a.slotsCount);
+      doctors.sort((a, b) => b.slotsCount - a.slotsCount);
+      state.filteredDoctors = doctors;
+      console.log('Search results:', doctors.length, 'doctors');
     }
 
     function getReasonsList() {
@@ -1415,8 +1470,8 @@
     }
 
     function goBack() {
-      const guidedSteps = ['start', 'patient-type', 'service', 'age', 'format', 'location', 'language', 'reason', 'doctor', 'calendar', 'time', 'patient-data', 'confirm'];
-      const searchSteps = ['start', 'search', 'search-reason', 'search-format', 'search-location', 'search-language', 'calendar', 'time', 'patient-data', 'confirm'];
+      const guidedSteps = ['start', 'patient-type', 'service', 'age-group', 'format', 'location', 'language', 'doctor', 'calendar', 'time', 'patient-data', 'confirm'];
+      const searchSteps = ['start', 'search', 'search-format', 'search-location', 'search-language', 'calendar', 'time', 'patient-data', 'confirm'];
       
       const steps = state.flowType === 'search' ? searchSteps : guidedSteps;
       let currentIndex = steps.indexOf(state.step);
@@ -1432,8 +1487,8 @@
       currentIndex--;
       
       if (state.flowType === 'guided') {
-        // Skip age if adult
-        if (steps[currentIndex] === 'age' && state.patientType === 'adult') {
+        // Skip age-group if psihiatrie-copil (it's automatic 0-18)
+        if (steps[currentIndex] === 'age-group' && state.serviceType === 'psihiatrie-copil') {
           currentIndex--;
         }
         // Skip format if not psihoterapie
@@ -1458,6 +1513,7 @@
         searchQuery: '',
         patientType: null,
         serviceType: null,
+        selectedAgeGroup: null,
         childAge: null,
         sessionFormat: null,
         locationId: null,
@@ -1500,7 +1556,7 @@
         'search-language': renderSearchLanguage,
         'patient-type': renderPatientType,
         'service': renderService,
-        'age': renderAge,
+        'age-group': renderAgeGroup,
         'format': renderFormat,
         'location': renderLocation,
         'language': renderLanguage,
@@ -1520,15 +1576,6 @@
         app.innerHTML = renderProgress() + renderFn();
         
         // Initialize button states after render
-        if (state.step === 'age') {
-          setTimeout(() => {
-            const input = document.getElementById('age-input');
-            if (input && input.value) {
-              updateAgeButton(input.value);
-            }
-          }, 0);
-        }
-        
         if (state.step === 'patient-data') {
           setTimeout(() => {
             updatePatientButton();
@@ -1548,14 +1595,14 @@
     }
 
     function renderProgress() {
-      const totalSteps = 8;
+      const totalSteps = 7;
       let currentStep = 0;
       
       const stepMap = {
         'start': 0,
-        'search': 1, 'search-reason': 2, 'search-format': 3, 'search-location': 3, 'search-language': 3,
-        'patient-type': 1, 'service': 2, 'age': 2, 'format': 3, 'location': 3, 'language': 3, 'reason': 4,
-        'doctor': 5, 'calendar': 6, 'time': 7, 'patient-data': 8, 'confirm': 8
+        'search': 1, 'search-format': 2, 'search-location': 2, 'search-language': 2,
+        'patient-type': 1, 'service': 2, 'age-group': 3, 'format': 4, 'location': 4, 'language': 4,
+        'doctor': 5, 'calendar': 6, 'time': 6, 'patient-data': 7, 'confirm': 7
       };
       
       currentStep = stepMap[state.step] || 0;
@@ -1831,44 +1878,47 @@
       `;
     }
 
-    function renderAge() {
+    function renderAgeGroup() {
+      let ageGroups = [];
+      let title = 'Selectați grupa de vârstă';
+      
+      if (state.patientType === 'adult') {
+        ageGroups = AGE_GROUPS_ADULT;
+      } else if (state.serviceType === 'logopedie') {
+        // Logopedie: doar 3-14 ani
+        ageGroups = AGE_GROUPS_LOGOPEDIE;
+        title = 'Logopedie este disponibilă pentru vârsta 3-14 ani';
+      } else {
+        ageGroups = AGE_GROUPS_CHILD;
+      }
+
       return `
         <div class="section">
           <div class="section-header">
             <button class="back-btn" onclick="goBack()">
               <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
             </button>
-            <div class="section-title">Câți ani are copilul?</div>
+            <div class="section-title">${title}</div>
           </div>
           
-          <div class="form-section">
-            <div class="form-group">
-              <div class="age-selector">
-                <input type="number" 
-                       id="age-input"
-                       class="form-input age-input" 
-                       min="1" max="17" 
-                       value="${state.childAge || ''}"
-                       placeholder="Vârstă"
-                       oninput="updateAgeButton(this.value)">
-                <span class="age-unit">ani</span>
+          <div class="options-grid">
+            ${ageGroups.map(ag => `
+              <div class="option-card" onclick="selectAgeGroup('${ag.key}', '${ag.label}', ${ag.min}, ${ag.max})">
+                <div class="option-icon">📅</div>
+                <div class="option-content">
+                  <div class="option-title">${ag.label}</div>
+                </div>
               </div>
-            </div>
-            
-            <button class="btn-primary" id="age-btn" onclick="confirmAge()" disabled>
-              Continuă
-            </button>
+            `).join('')}
           </div>
+          
+          ${state.serviceType === 'logopedie' ? `
+            <div style="margin-top: 16px; padding: 12px; background: var(--warning-light); border-radius: 10px; font-size: 12px; color: var(--warning);">
+              ⚠️ Pentru vârste de 15+ ani, vă rugăm să ne contactați telefonic la <a href="tel:0217812259" style="color: inherit; font-weight: 600;">021.781.22.59</a>
+            </div>
+          ` : ''}
         </div>
       `;
-    }
-    
-    function updateAgeButton(value) {
-      const age = parseInt(value);
-      const btn = document.getElementById('age-btn');
-      if (btn) {
-        btn.disabled = !age || age < 1 || age > 17;
-      }
     }
 
     function renderFormat() {
@@ -1935,6 +1985,9 @@
     }
 
     function renderLanguage() {
+      // Get unique languages from all doctors that match our filters so far
+      const availableLanguages = ['Romana', 'Engleza']; // Most common, show by default
+      
       return `
         <div class="section">
           <div class="section-header">
@@ -1949,9 +2002,9 @@
               <div class="option-icon">🇷🇴</div>
               <div class="option-title">Română</div>
             </div>
-            <div class="option-card-small" onclick="selectLanguage('English')">
+            <div class="option-card-small" onclick="selectLanguage('Engleza')">
               <div class="option-icon">🇬🇧</div>
-              <div class="option-title">English</div>
+              <div class="option-title">Engleză</div>
             </div>
           </div>
         </div>
@@ -2412,7 +2465,15 @@
         state.patientType = 'adult';
       }
       
-      state.step = 'search-reason';
+      // Skip reason - go directly to format/location
+      const canOnline = (state.selectedDoctor.SpecialtyType || []).some(s => s.toLowerCase().includes('psihoterapie'));
+      
+      if (canOnline) {
+        state.step = 'search-format';
+      } else {
+        state.sessionFormat = 'cabinet';
+        state.step = 'search-location';
+      }
       render();
     }
 
@@ -2480,29 +2541,37 @@
     function selectService(service) {
       state.serviceType = service;
       
-      if (state.patientType === 'child') {
-        state.step = 'age';
-      } else if (service.includes('psihoterapie')) {
-        state.step = 'format';
-      } else {
+      // Psihiatrie pediatrică - nu cere vârstă, e 0-18 automat
+      if (service === 'psihiatrie-copil') {
+        state.selectedAgeGroup = { key: '0-18', label: '0-18 ani', min: 0, max: 18 };
         state.sessionFormat = 'cabinet';
         state.step = 'location';
+      } else {
+        // Toate celelalte servicii cer selectarea vârstei
+        state.step = 'age-group';
       }
       render();
     }
 
-    function confirmAge() {
-      // Read value directly from input
-      const input = document.getElementById('age-input');
-      const age = parseInt(input?.value) || state.childAge;
+    function selectAgeGroup(key, label, min, max) {
+      state.selectedAgeGroup = { key, label, min, max };
       
-      if (!age || age < 1 || age > 17) return;
+      // For children's psihoterapie, adjust service type based on age
+      if (state.patientType === 'child' && state.serviceType === 'psihoterapie-copil') {
+        if (key === '14-18') {
+          state.serviceType = 'psihoterapie-adolescent';
+        }
+        // else keep 'psihoterapie-copil' for 3-13
+      }
       
-      state.childAge = age;
+      // Determine next step based on service type
+      const isPsihoterapie = state.serviceType.includes('psihoterapie');
       
-      if (state.serviceType.includes('psihoterapie')) {
+      if (isPsihoterapie) {
+        // Psihoterapie can be online or cabinet
         state.step = 'format';
       } else {
+        // Psihiatrie and Logopedie are cabinet only
         state.sessionFormat = 'cabinet';
         state.step = 'location';
       }
@@ -2523,7 +2592,8 @@
 
     function selectLanguage(language) {
       state.language = language;
-      state.step = 'reason';
+      // Skip reason for now - go directly to doctor selection
+      state.step = 'doctor';
       render();
     }
 
