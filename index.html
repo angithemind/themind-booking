@@ -1347,9 +1347,7 @@
         const endMinutes = endMins % 60;
         const endTime = String(endHours).padStart(2, '0') + ':' + String(endMinutes).padStart(2, '0');
 
-        const reason = state.selectedReason === 'other' ? state.otherReason : state.selectedReason;
         const serviceLabel = SERVICE_TYPES[state.serviceType]?.api || state.serviceType;
-        const details = reason ? `${serviceLabel} - ${reason}` : serviceLabel;
         
         const date = parseDateString(state.selectedDate);
         const dayNames = ['duminică', 'luni', 'marți', 'miercuri', 'joi', 'vineri', 'sâmbătă'];
@@ -1371,7 +1369,7 @@
           patientName: state.patientName.trim(),
           patientPhone: state.patientPhone.trim(),
           patientEmail: state.patientEmail.trim() || '',
-          details: details,
+          details: serviceLabel,
           doctorName: state.selectedDoctor.Name,
           dateDisplay: dateDisplay,
           timeDisplay: timeDisplay,
@@ -1381,7 +1379,7 @@
           price: `${price} RON`
         };
 
-        console.log('Booking:', bookingData);
+        console.log('Booking request:', bookingData);
 
         const response = await fetch(CONFIG.bookingWebhook, {
           method: 'POST',
@@ -1389,24 +1387,19 @@
           body: JSON.stringify(bookingData)
         });
 
-        if (!response.ok) throw new Error('Network error');
+        console.log('Response status:', response.status);
 
-        const result = await response.json();
-        console.log('Result:', result);
-
-        if (result.data?.ReturnData?.[0]?.AppointmentId) {
-          state.appointmentId = result.data.ReturnData[0].AppointmentId;
-          state.step = 'success';
-        } else if (result.AppointmentId) {
-          state.appointmentId = result.AppointmentId;
+        // SIMPLU: Dacă HTTP status e 200-299, e SUCCES
+        if (response.ok) {
           state.step = 'success';
         } else {
-          throw new Error('No appointment ID');
+          throw new Error('HTTP ' + response.status);
         }
+
       } catch (err) {
         console.error('Booking error:', err);
         state.step = 'error';
-        state.errorMessage = 'Nu am putut finaliza programarea. Vă rugăm încercați din nou sau contactați-ne telefonic.';
+        state.errorMessage = 'Nu am putut finaliza programarea. Vă rugăm contactați-ne telefonic la 021.781.22.59';
       }
 
       state.bookingInProgress = false;
@@ -2373,9 +2366,9 @@
         <div class="error-container">
           <div class="error-icon">❌</div>
           <div class="error-title">A apărut o eroare</div>
-          <div class="error-message">${state.errorMessage || 'Nu am putut finaliza programarea.'}</div>
-          <button class="btn-primary" onclick="goToStep('confirm')">Încearcă din nou</button>
-          <button class="btn-secondary" onclick="resetBooking()">Începe de la capăt</button>
+          <div class="error-message">${state.errorMessage || 'Nu am putut finaliza programarea. Vă rugăm contactați-ne telefonic la 021.781.22.59'}</div>
+          <button class="btn-primary" onclick="resetBooking()">Începe de la capăt</button>
+          <a href="tel:0217812259" class="btn-secondary" style="display: block; text-align: center; text-decoration: none;">📞 Sună: 021.781.22.59</a>
         </div>
       `;
     }
