@@ -1349,17 +1349,36 @@
 
         const reason = state.selectedReason === 'other' ? state.otherReason : state.selectedReason;
         const serviceLabel = SERVICE_TYPES[state.serviceType]?.api || state.serviceType;
-        const appointmentDetails = reason ? `${serviceLabel} - ${reason}` : serviceLabel;
+        const details = reason ? `${serviceLabel} - ${reason}` : serviceLabel;
+        
+        const date = parseDateString(state.selectedDate);
+        const dayNames = ['duminică', 'luni', 'marți', 'miercuri', 'joi', 'vineri', 'sâmbătă'];
+        const monthNames = ['ianuarie', 'februarie', 'martie', 'aprilie', 'mai', 'iunie', 'iulie', 'august', 'septembrie', 'octombrie', 'noiembrie', 'decembrie'];
+        const dayOfWeek = dayNames[date.getDay()];
+        const dayShort = ['Dum', 'Lun', 'Mar', 'Mie', 'Joi', 'Vin', 'Sâm'][date.getDay()];
+        
+        const dateDisplay = `${dayOfWeek}, ${date.getDate()} ${monthNames[date.getMonth()]} ${date.getFullYear()}`;
+        const timeDisplay = `${dayShort} ${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')} ora ${state.selectedTime.time} - ${endTime}`;
+        
+        const locationName = state.sessionFormat === 'online' ? 'Online' : (LOCATIONS[state.locationId]?.name || '');
+        const price = calculatePrice(state.serviceType, state.selectedDoctor.DoctorType, state.language);
 
         const bookingData = {
-          doctorId: state.selectedDoctor.DoctorId,
-          locationId: parseInt(state.sessionFormat === 'online' ? '1' : state.locationId),
+          doctorId: String(state.selectedDoctor.DoctorId),
+          locationId: String(state.sessionFormat === 'online' ? '1' : state.locationId),
           startDateTime: `${state.selectedDate} ${state.selectedTime.time}:00`,
           endDateTime: `${state.selectedDate} ${endTime}:00`,
           patientName: state.patientName.trim(),
-          patientPhoneNumber: state.patientPhone.trim(),
-          appointmentDetails: appointmentDetails,
-          ...(state.patientEmail.trim() && { patientEmail: state.patientEmail.trim() })
+          patientPhone: state.patientPhone.trim(),
+          patientEmail: state.patientEmail.trim() || '',
+          details: details,
+          doctorName: state.selectedDoctor.Name,
+          dateDisplay: dateDisplay,
+          timeDisplay: timeDisplay,
+          locationName: locationName,
+          sessionFormat: state.sessionFormat || 'fizic',
+          language: state.language || 'Romana',
+          price: `${price} RON`
         };
 
         console.log('Booking:', bookingData);
