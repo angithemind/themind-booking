@@ -1155,27 +1155,40 @@
       return name?.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || '?';
     }
 
+    // Minimum hours before appointment can be booked
+    const MIN_BOOKING_HOURS = 48;
+
     function getDoctorSlots(doctorId, locationId = null) {
+      const now = new Date();
+      const minBookingTime = new Date(now.getTime() + MIN_BOOKING_HOURS * 60 * 60 * 1000);
+      
       return state.allSlots.filter(s => {
         if (s.DoctorId !== doctorId) return false;
         if (locationId && s.LocationId !== parseInt(locationId)) return false;
+        
+        // Check if slot is at least 24 hours away
+        const slotTime = parseSlotDateTime(s.StartDateTime);
+        if (slotTime < minBookingTime) return false;
+        
         return true;
       });
     }
 
     function getDoctorAvailableDates(doctorId, locationId = null) {
-      const slots = getDoctorSlots(doctorId, locationId);
+      const slots = getDoctorSlots(doctorId, locationId); // Already filtered by 24h rule
       const dates = new Set();
-      const today = formatDateISO(new Date());
       slots.forEach(s => {
         const date = getSlotDate(s);
-        if (date >= today) dates.add(date);
+        dates.add(date);
       });
       return dates;
     }
 
     function generateTimeSlots(rawSlots) {
       const allTimes = [];
+      const now = new Date();
+      const minBookingTime = new Date(now.getTime() + MIN_BOOKING_HOURS * 60 * 60 * 1000);
+      
       rawSlots.forEach(slot => {
         const start = parseSlotDateTime(slot.StartDateTime);
         const end = parseSlotDateTime(slot.EndDateTime);
@@ -1191,12 +1204,15 @@
         
         // Generate slots only at full hours (:00)
         while (current.getTime() + SESSION_DURATION * 60 * 1000 <= end.getTime()) {
-          const hours = current.getUTCHours();
-          const timeStr = String(hours).padStart(2, '0') + ':00';
-          allTimes.push({ 
-            time: timeStr, 
-            startDateTime: slot.StartDateTime.substring(0, 11) + timeStr + ':00' 
-          });
+          // Skip if less than 24 hours away
+          if (current >= minBookingTime) {
+            const hours = current.getUTCHours();
+            const timeStr = String(hours).padStart(2, '0') + ':00';
+            allTimes.push({ 
+              time: timeStr, 
+              startDateTime: slot.StartDateTime.substring(0, 11) + timeStr + ':00' 
+            });
+          }
           // Move to next full hour
           current.setUTCHours(current.getUTCHours() + 1);
         }
@@ -1208,10 +1224,18 @@
     }
 
     function getTimeSlotsForDoctorDate(doctorId, dateStr, locationId = null) {
+      const now = new Date();
+      const minBookingTime = new Date(now.getTime() + MIN_BOOKING_HOURS * 60 * 60 * 1000);
+      
       const slots = state.allSlots.filter(s => {
         if (s.DoctorId !== doctorId) return false;
         if (!s.StartDateTime.startsWith(dateStr)) return false;
         if (locationId && s.LocationId !== parseInt(locationId)) return false;
+        
+        // Check if slot is at least 24 hours away
+        const slotTime = parseSlotDateTime(s.StartDateTime);
+        if (slotTime < minBookingTime) return false;
+        
         return true;
       });
       return generateTimeSlots(slots);
@@ -2492,7 +2516,7 @@
           
           <div style="margin-bottom: 16px; padding: 12px; background: var(--warning-light); border-radius: 10px; font-size: 11px; color: var(--warning);">
             <strong>⚠️ Politica de anulare:</strong><br>
-            Dacă ai nevoie să anulezi, te rugăm să ne anunți cu minim 24 de ore înainte, altfel ședința va fi tarifată. 
+            Dacă ai nevoie să anulezi, te rugăm să ne anunți cu minim 48 de ore înainte, altfel ședința va fi tarifată. 
             Prin programare rezervi timpul unui specialist, o resursă finită și prețioasă.
           </div>
           
