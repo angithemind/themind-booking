@@ -1083,59 +1083,7 @@
       }
       return 290;
     }
-
-    // =====================================================
-    // STATE
-    // =====================================================
-    let state = {
-      step: 'loading',
-      loading: true,
-      bookingInProgress: false,
-      
-      // Data
-      allSlots: [],
-      allDoctors: [],
-      filteredDoctors: [],
-      
-      // Flow type
-      flowType: null, // 'search' or 'guided'
-      
-      // Search
-      searchQuery: '',
-      
-      // Selections
-      patientType: null,
-      serviceType: null,
-      selectedAgeGroup: null, // { key, label, min, max }
-      childAge: null,
-      sessionFormat: null,
-      locationId: null,
-      language: null,
-      selectedReason: null,
-      otherReason: '',
-      
-      selectedDoctor: null,
-      selectedDate: null,
-      selectedTime: null,
-      
-      // Patient data
-      patientName: '',
-      patientPhone: '',
-      patientEmail: '',
-      
-      // Phone verification
-      phoneChecked: false,
-      phoneCanBook: true,
-      phoneCheckLoading: false,
-      
-      // Calendar
-      currentMonth: new Date(),
-      
-      // Results
-      appointmentId: null,
-      errorMessage: null
-    };
-
+    
     // =====================================================
     // INITIALIZATION
     // =====================================================
