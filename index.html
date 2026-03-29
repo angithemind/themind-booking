@@ -5,886 +5,147 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>The Mind - Programare Online</title>
   <style>
-    * {
-      margin: 0;
-      padding: 0;
-      box-sizing: border-box;
-    }
-
+    * { margin: 0; padding: 0; box-sizing: border-box; }
     :root {
-      --primary: #1a5f7a;
-      --primary-dark: #134b61;
-      --primary-light: #e8f4f8;
-      --accent: #57c5b6;
-      --accent-light: #e6f7f5;
-      --text: #2d3748;
-      --text-light: #718096;
-      --bg: #ffffff;
-      --border: #e2e8f0;
-      --disabled: #cbd5e0;
-      --error: #e53e3e;
-      --error-light: #fed7d7;
-      --success: #38a169;
-      --success-light: #c6f6d5;
-      --warning: #dd6b20;
-      --warning-light: #feebc8;
+      --primary: #1a5f7a; --primary-dark: #134b61; --primary-light: #e8f4f8;
+      --accent: #57c5b6; --accent-light: #e6f7f5; --text: #2d3748;
+      --text-light: #718096; --bg: #ffffff; --border: #e2e8f0;
+      --disabled: #cbd5e0; --error: #e53e3e; --error-light: #fed7d7;
+      --success: #38a169; --success-light: #c6f6d5;
+      --warning: #dd6b20; --warning-light: #feebc8;
     }
-
-    body {
-      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
-      background: var(--bg);
-      color: var(--text);
-      font-size: 13px;
-      line-height: 1.4;
-    }
-
-    .app-container {
-      max-width: 380px;
-      min-height: 400px;
-      padding: 16px;
-    }
-
-    /* Progress bar */
-    .progress-bar {
-      display: flex;
-      align-items: center;
-      gap: 4px;
-      margin-bottom: 16px;
-    }
-
-    .progress-step {
-      flex: 1;
-      height: 3px;
-      background: var(--border);
-      border-radius: 2px;
-      transition: background 0.3s;
-    }
-
+    body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif; background: var(--bg); color: var(--text); font-size: 13px; line-height: 1.4; }
+    .app-container { max-width: 380px; min-height: 400px; padding: 16px; }
+    .progress-bar { display: flex; align-items: center; gap: 4px; margin-bottom: 16px; }
+    .progress-step { flex: 1; height: 3px; background: var(--border); border-radius: 2px; transition: background 0.3s; }
     .progress-step.active { background: var(--primary); }
     .progress-step.completed { background: var(--accent); }
-
-    /* Section styling */
     .section { animation: fadeIn 0.3s ease; }
-
-    @keyframes fadeIn {
-      from { opacity: 0; transform: translateY(10px); }
-      to { opacity: 1; transform: translateY(0); }
-    }
-
-    .section-header {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      margin-bottom: 14px;
-    }
-
-    .section-title {
-      font-size: 15px;
-      font-weight: 600;
-      color: var(--primary);
-    }
-
-    .section-subtitle {
-      font-size: 12px;
-      color: var(--text-light);
-      margin-top: 2px;
-    }
-
-    .back-btn {
-      width: 32px;
-      height: 32px;
-      border: 1px solid var(--border);
-      background: var(--bg);
-      border-radius: 8px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--text-light);
-      transition: all 0.15s;
-      flex-shrink: 0;
-    }
-
-    .back-btn:hover {
-      background: var(--primary-light);
-      border-color: var(--primary);
-      color: var(--primary);
-    }
-
-    /* Option cards */
-    .options-grid {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-    }
-
-    .option-card {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 14px;
-      border: 2px solid var(--border);
-      border-radius: 12px;
-      cursor: pointer;
-      transition: all 0.2s;
-      background: var(--bg);
-    }
-
-    .option-card:hover {
-      border-color: var(--primary);
-      background: var(--primary-light);
-    }
-
-    .option-card.selected {
-      border-color: var(--primary);
-      background: var(--primary-light);
-    }
-
-    .option-card.primary-option {
-      border-color: var(--primary);
-      background: var(--primary-light);
-    }
-
-    .option-card.primary-option:hover {
-      background: var(--primary);
-      color: white;
-    }
-
-    .option-card.primary-option:hover .option-title,
-    .option-card.primary-option:hover .option-desc {
-      color: white;
-    }
-
-    .option-icon {
-      width: 44px;
-      height: 44px;
-      border-radius: 10px;
-      background: var(--primary-light);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 22px;
-      flex-shrink: 0;
-    }
-
-    .option-card.primary-option .option-icon {
-      background: var(--primary);
-    }
-
-    .option-card.primary-option:hover .option-icon {
-      background: rgba(255,255,255,0.2);
-    }
-
+    @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+    .section-header { display: flex; align-items: center; gap: 10px; margin-bottom: 14px; }
+    .section-title { font-size: 15px; font-weight: 600; color: var(--primary); }
+    .section-subtitle { font-size: 12px; color: var(--text-light); margin-top: 2px; }
+    .back-btn { width: 32px; height: 32px; border: 1px solid var(--border); background: var(--bg); border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text-light); transition: all 0.15s; flex-shrink: 0; }
+    .back-btn:hover { background: var(--primary-light); border-color: var(--primary); color: var(--primary); }
+    .options-grid { display: flex; flex-direction: column; gap: 10px; }
+    .option-card { display: flex; align-items: center; gap: 12px; padding: 14px; border: 2px solid var(--border); border-radius: 12px; cursor: pointer; transition: all 0.2s; background: var(--bg); }
+    .option-card:hover { border-color: var(--primary); background: var(--primary-light); }
+    .option-card.selected { border-color: var(--primary); background: var(--primary-light); }
+    .option-card.primary-option { border-color: var(--primary); background: var(--primary-light); }
+    .option-card.primary-option:hover { background: var(--primary); color: white; }
+    .option-card.primary-option:hover .option-title, .option-card.primary-option:hover .option-desc { color: white; }
+    .option-icon { width: 44px; height: 44px; border-radius: 10px; background: var(--primary-light); display: flex; align-items: center; justify-content: center; font-size: 22px; flex-shrink: 0; }
+    .option-card.primary-option .option-icon { background: var(--primary); }
+    .option-card.primary-option:hover .option-icon { background: rgba(255,255,255,0.2); }
     .option-content { flex: 1; }
-
-    .option-title {
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--text);
-      margin-bottom: 2px;
-    }
-
-    .option-desc {
-      font-size: 11px;
-      color: var(--text-light);
-    }
-
-    /* Two column options */
-    .options-row {
-      display: grid;
-      grid-template-columns: 1fr 1fr;
-      gap: 10px;
-    }
-
-    .option-card-small {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 8px;
-      padding: 18px 12px;
-      border: 2px solid var(--border);
-      border-radius: 12px;
-      cursor: pointer;
-      transition: all 0.2s;
-      background: var(--bg);
-      text-align: center;
-    }
-
-    .option-card-small:hover {
-      border-color: var(--primary);
-      background: var(--primary-light);
-    }
-
-    .option-card-small.selected {
-      border-color: var(--primary);
-      background: var(--primary-light);
-    }
-
-    .option-card-small .option-icon {
-      width: 52px;
-      height: 52px;
-      font-size: 26px;
-    }
-
-    /* Reason/Problem checkboxes */
-    .reasons-grid {
-      display: flex;
-      flex-direction: column;
-      gap: 8px;
-      margin-bottom: 14px;
-    }
-
-    .reason-item {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 12px 14px;
-      border: 2px solid var(--border);
-      border-radius: 10px;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .reason-item:hover {
-      border-color: var(--primary);
-      background: var(--primary-light);
-    }
-
-    .reason-item.selected {
-      border-color: var(--primary);
-      background: var(--primary-light);
-    }
-
-    .reason-checkbox {
-      width: 20px;
-      height: 20px;
-      border: 2px solid var(--border);
-      border-radius: 4px;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      flex-shrink: 0;
-      transition: all 0.2s;
-    }
-
-    .reason-item.selected .reason-checkbox {
-      background: var(--primary);
-      border-color: var(--primary);
-      color: white;
-    }
-
-    .reason-label {
-      font-size: 13px;
-      font-weight: 500;
-    }
-
-    .other-input {
-      flex: 1;
-      border: none;
-      background: transparent;
-      font-size: 13px;
-      outline: none;
-      padding: 0;
-    }
-
-    .other-input::placeholder {
-      color: var(--text-light);
-    }
-
-    /* Search box */
+    .option-title { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+    .option-desc { font-size: 11px; color: var(--text-light); }
+    .options-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; }
+    .option-card-small { display: flex; flex-direction: column; align-items: center; gap: 8px; padding: 18px 12px; border: 2px solid var(--border); border-radius: 12px; cursor: pointer; transition: all 0.2s; background: var(--bg); text-align: center; }
+    .option-card-small:hover { border-color: var(--primary); background: var(--primary-light); }
+    .option-card-small.selected { border-color: var(--primary); background: var(--primary-light); }
+    .option-card-small .option-icon { width: 52px; height: 52px; font-size: 26px; }
+    .reasons-grid { display: flex; flex-direction: column; gap: 8px; margin-bottom: 14px; }
+    .reason-item { display: flex; align-items: center; gap: 12px; padding: 12px 14px; border: 2px solid var(--border); border-radius: 10px; cursor: pointer; transition: all 0.2s; }
+    .reason-item:hover { border-color: var(--primary); background: var(--primary-light); }
+    .reason-item.selected { border-color: var(--primary); background: var(--primary-light); }
+    .reason-checkbox { width: 20px; height: 20px; border: 2px solid var(--border); border-radius: 4px; display: flex; align-items: center; justify-content: center; flex-shrink: 0; transition: all 0.2s; }
+    .reason-item.selected .reason-checkbox { background: var(--primary); border-color: var(--primary); color: white; }
+    .reason-label { font-size: 13px; font-weight: 500; }
+    .other-input { flex: 1; border: none; background: transparent; font-size: 13px; outline: none; padding: 0; }
+    .other-input::placeholder { color: var(--text-light); }
     .search-container { margin-bottom: 14px; }
-
-    .search-box {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 12px 14px;
-      border: 2px solid var(--border);
-      border-radius: 10px;
-      background: var(--bg);
-      transition: border-color 0.2s;
-    }
-
+    .search-box { display: flex; align-items: center; gap: 10px; padding: 12px 14px; border: 2px solid var(--border); border-radius: 10px; background: var(--bg); transition: border-color 0.2s; }
     .search-box:focus-within { border-color: var(--primary); }
-
-    .search-box input {
-      flex: 1;
-      border: none;
-      outline: none;
-      font-size: 14px;
-      background: transparent;
-      color: var(--text);
-    }
-
+    .search-box input { flex: 1; border: none; outline: none; font-size: 14px; background: transparent; color: var(--text); }
     .search-box input::placeholder { color: var(--text-light); }
     .search-icon { color: var(--text-light); }
-
-    /* Doctor cards */
-    .doctors-list {
-      display: flex;
-      flex-direction: column;
-      gap: 10px;
-      max-height: 340px;
-      overflow-y: auto;
-    }
-
-    .doctor-card {
-      display: flex;
-      align-items: center;
-      gap: 12px;
-      padding: 12px;
-      border: 2px solid var(--border);
-      border-radius: 12px;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
-    .doctor-card:hover {
-      border-color: var(--primary);
-      background: var(--primary-light);
-    }
-
-    .doctor-avatar {
-      width: 52px;
-      height: 52px;
-      border-radius: 50%;
-      background: var(--primary-light);
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 16px;
-      font-weight: 600;
-      color: var(--primary);
-      overflow: hidden;
-      flex-shrink: 0;
-    }
-
-    .doctor-avatar img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    .doctor-info {
-      flex: 1;
-      min-width: 0;
-    }
-
-    .doctor-name {
-      font-size: 14px;
-      font-weight: 600;
-      color: var(--text);
-      margin-bottom: 2px;
-    }
-
-    .doctor-specialty {
-      font-size: 11px;
-      color: var(--text-light);
-      margin-bottom: 4px;
-      display: -webkit-box;
-      -webkit-line-clamp: 2;
-      -webkit-box-orient: vertical;
-      overflow: hidden;
-    }
-
-    .doctor-meta {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-    }
-
-    .doctor-slots {
-      font-size: 10px;
-      color: var(--accent);
-      font-weight: 600;
-    }
-
-    .doctor-languages {
-      font-size: 10px;
-      color: var(--text-light);
-    }
-
-    /* Badge for selected info */
-    .selected-badge {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-      padding: 10px 12px;
-      background: var(--primary-light);
-      border-radius: 10px;
-      margin-bottom: 14px;
-    }
-
-    .selected-badge img {
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      object-fit: cover;
-    }
-
-    .selected-badge .initials {
-      width: 36px;
-      height: 36px;
-      border-radius: 50%;
-      background: var(--primary);
-      color: white;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 13px;
-      font-weight: 600;
-    }
-
+    .doctors-list { display: flex; flex-direction: column; gap: 10px; max-height: 340px; overflow-y: auto; }
+    .doctor-card { display: flex; align-items: center; gap: 12px; padding: 12px; border: 2px solid var(--border); border-radius: 12px; cursor: pointer; transition: all 0.2s; }
+    .doctor-card:hover { border-color: var(--primary); background: var(--primary-light); }
+    .doctor-avatar { width: 52px; height: 52px; border-radius: 50%; background: var(--primary-light); display: flex; align-items: center; justify-content: center; font-size: 16px; font-weight: 600; color: var(--primary); overflow: hidden; flex-shrink: 0; }
+    .doctor-avatar img { width: 100%; height: 100%; object-fit: cover; }
+    .doctor-info { flex: 1; min-width: 0; }
+    .doctor-name { font-size: 14px; font-weight: 600; color: var(--text); margin-bottom: 2px; }
+    .doctor-specialty { font-size: 11px; color: var(--text-light); margin-bottom: 4px; display: -webkit-box; -webkit-line-clamp: 2; -webkit-box-orient: vertical; overflow: hidden; }
+    .doctor-meta { display: flex; align-items: center; gap: 8px; }
+    .doctor-slots { font-size: 10px; color: var(--accent); font-weight: 600; }
+    .doctor-languages { font-size: 10px; color: var(--text-light); }
+    .selected-badge { display: flex; align-items: center; gap: 10px; padding: 10px 12px; background: var(--primary-light); border-radius: 10px; margin-bottom: 14px; }
+    .selected-badge img { width: 36px; height: 36px; border-radius: 50%; object-fit: cover; }
+    .selected-badge .initials { width: 36px; height: 36px; border-radius: 50%; background: var(--primary); color: white; display: flex; align-items: center; justify-content: center; font-size: 13px; font-weight: 600; }
     .selected-badge .info { flex: 1; }
-
-    .selected-badge .name {
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--primary);
-    }
-
-    .selected-badge .detail {
-      font-size: 11px;
-      color: var(--text-light);
-    }
-
-    /* Calendar */
-    .calendar-container {
-      background: var(--bg);
-      border-radius: 12px;
-      border: 1px solid var(--border);
-      padding: 14px;
-    }
-
-    .calendar-header {
-      display: flex;
-      align-items: center;
-      justify-content: space-between;
-      margin-bottom: 14px;
-    }
-
-    .month-title {
-      font-weight: 600;
-      font-size: 15px;
-      color: var(--primary);
-    }
-
-    .calendar-nav {
-      display: flex;
-      gap: 6px;
-    }
-
-    .nav-btn {
-      width: 32px;
-      height: 32px;
-      border: 1px solid var(--border);
-      background: var(--bg);
-      border-radius: 8px;
-      cursor: pointer;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      color: var(--text);
-      transition: all 0.15s;
-    }
-
-    .nav-btn:hover {
-      background: var(--primary-light);
-      border-color: var(--primary);
-    }
-
-    .nav-btn:disabled {
-      opacity: 0.4;
-      cursor: not-allowed;
-    }
-
-    .weekdays {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      gap: 2px;
-      margin-bottom: 6px;
-    }
-
-    .weekday {
-      text-align: center;
-      font-size: 11px;
-      font-weight: 600;
-      color: var(--text-light);
-      padding: 6px 0;
-    }
-
-    .days-grid {
-      display: grid;
-      grid-template-columns: repeat(7, 1fr);
-      gap: 4px;
-    }
-
-    .day {
-      aspect-ratio: 1;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      font-size: 13px;
-      border-radius: 8px;
-      cursor: pointer;
-      transition: all 0.15s;
-      border: 2px solid transparent;
-    }
-
+    .selected-badge .name { font-size: 13px; font-weight: 600; color: var(--primary); }
+    .selected-badge .detail { font-size: 11px; color: var(--text-light); }
+    .calendar-container { background: var(--bg); border-radius: 12px; border: 1px solid var(--border); padding: 14px; }
+    .calendar-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 14px; }
+    .month-title { font-weight: 600; font-size: 15px; color: var(--primary); }
+    .calendar-nav { display: flex; gap: 6px; }
+    .nav-btn { width: 32px; height: 32px; border: 1px solid var(--border); background: var(--bg); border-radius: 8px; cursor: pointer; display: flex; align-items: center; justify-content: center; color: var(--text); transition: all 0.15s; }
+    .nav-btn:hover { background: var(--primary-light); border-color: var(--primary); }
+    .nav-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+    .weekdays { display: grid; grid-template-columns: repeat(7, 1fr); gap: 2px; margin-bottom: 6px; }
+    .weekday { text-align: center; font-size: 11px; font-weight: 600; color: var(--text-light); padding: 6px 0; }
+    .days-grid { display: grid; grid-template-columns: repeat(7, 1fr); gap: 4px; }
+    .day { aspect-ratio: 1; display: flex; align-items: center; justify-content: center; font-size: 13px; border-radius: 8px; cursor: pointer; transition: all 0.15s; border: 2px solid transparent; }
     .day.empty { cursor: default; }
-
-    .day.past, .day.unavailable {
-      color: var(--disabled);
-      cursor: not-allowed;
-    }
-
-    .day.available {
-      background: var(--accent-light);
-      color: var(--primary);
-      font-weight: 500;
-    }
-
-    .day.available:hover {
-      background: var(--primary);
-      color: white;
-    }
-
-    .day.selected {
-      background: var(--primary);
-      color: white;
-      font-weight: 600;
-    }
-
+    .day.past, .day.unavailable { color: var(--disabled); cursor: not-allowed; }
+    .day.available { background: var(--accent-light); color: var(--primary); font-weight: 500; }
+    .day.available:hover { background: var(--primary); color: white; }
+    .day.selected { background: var(--primary); color: white; font-weight: 600; }
     .day.today { border-color: var(--accent); }
-
-    /* Time slots */
-    .time-section {
-      margin-top: 14px;
-      padding-top: 14px;
-      border-top: 1px solid var(--border);
-    }
-
-    .time-header {
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--primary);
-      margin-bottom: 10px;
-    }
-
-    .time-grid {
-      display: grid;
-      grid-template-columns: repeat(4, 1fr);
-      gap: 8px;
-      max-height: 150px;
-      overflow-y: auto;
-    }
-
-    .time-slot {
-      padding: 12px 6px;
-      text-align: center;
-      font-size: 13px;
-      font-weight: 500;
-      border: 2px solid var(--border);
-      border-radius: 8px;
-      cursor: pointer;
-      transition: all 0.15s;
-      background: var(--bg);
-    }
-
-    .time-slot:hover {
-      border-color: var(--primary);
-      background: var(--primary-light);
-    }
-
-    .time-slot.selected {
-      background: var(--primary);
-      color: white;
-      border-color: var(--primary);
-    }
-
-    /* Form inputs */
-    .form-section {
-      display: flex;
-      flex-direction: column;
-      gap: 14px;
-    }
-
-    .form-group {
-      display: flex;
-      flex-direction: column;
-      gap: 6px;
-    }
-
-    .form-label {
-      font-size: 12px;
-      font-weight: 600;
-      color: var(--text);
-    }
-
+    .time-section { margin-top: 14px; padding-top: 14px; border-top: 1px solid var(--border); }
+    .time-header { font-size: 13px; font-weight: 600; color: var(--primary); margin-bottom: 10px; }
+    .time-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 8px; max-height: 150px; overflow-y: auto; }
+    .time-slot { padding: 12px 6px; text-align: center; font-size: 13px; font-weight: 500; border: 2px solid var(--border); border-radius: 8px; cursor: pointer; transition: all 0.15s; background: var(--bg); }
+    .time-slot:hover { border-color: var(--primary); background: var(--primary-light); }
+    .time-slot.selected { background: var(--primary); color: white; border-color: var(--primary); }
+    .form-section { display: flex; flex-direction: column; gap: 14px; }
+    .form-group { display: flex; flex-direction: column; gap: 6px; }
+    .form-label { font-size: 12px; font-weight: 600; color: var(--text); }
     .form-label .required { color: var(--error); }
-
-    .form-label .optional {
-      color: var(--text-light);
-      font-weight: 400;
-    }
-
-    .form-input {
-      padding: 12px 14px;
-      border: 2px solid var(--border);
-      border-radius: 10px;
-      font-size: 14px;
-      color: var(--text);
-      outline: none;
-      transition: border-color 0.2s;
-    }
-
+    .form-label .optional { color: var(--text-light); font-weight: 400; }
+    .form-input { padding: 12px 14px; border: 2px solid var(--border); border-radius: 10px; font-size: 14px; color: var(--text); outline: none; transition: border-color 0.2s; }
     .form-input:focus { border-color: var(--primary); }
     .form-input.error { border-color: var(--error); }
-
-    .form-hint {
-      font-size: 11px;
-      color: var(--text-light);
-    }
-
-    .form-error {
-      font-size: 11px;
-      color: var(--error);
-    }
-
-    /* Age selector */
-    .age-selector {
-      display: flex;
-      align-items: center;
-      gap: 10px;
-    }
-
-    .age-input {
-      width: 100px;
-      text-align: center;
-    }
-
-    .age-unit {
-      font-size: 13px;
-      color: var(--text-light);
-    }
-
-    /* Phone verification */
-    .phone-status {
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      padding: 10px 12px;
-      border-radius: 8px;
-      font-size: 12px;
-      margin-top: 6px;
-    }
-
-    .phone-status.checking {
-      background: var(--primary-light);
-      color: var(--primary);
-    }
-
-    .phone-status.success {
-      background: var(--success-light);
-      color: var(--success);
-    }
-
-    .phone-status.error {
-      background: var(--error-light);
-      color: var(--error);
-    }
-
-    .phone-status.warning {
-      background: var(--warning-light);
-      color: var(--warning);
-    }
-
-    /* Summary */
-    .summary-card {
-      background: var(--primary-light);
-      border-radius: 12px;
-      padding: 16px;
-      margin-bottom: 16px;
-    }
-
-    .summary-row {
-      display: flex;
-      align-items: flex-start;
-      gap: 10px;
-      padding: 8px 0;
-      border-bottom: 1px solid rgba(26, 95, 122, 0.1);
-    }
-
+    .form-hint { font-size: 11px; color: var(--text-light); }
+    .form-error { font-size: 11px; color: var(--error); }
+    .age-selector { display: flex; align-items: center; gap: 10px; }
+    .age-input { width: 100px; text-align: center; }
+    .age-unit { font-size: 13px; color: var(--text-light); }
+    .phone-status { display: flex; align-items: center; gap: 8px; padding: 10px 12px; border-radius: 8px; font-size: 12px; margin-top: 6px; }
+    .phone-status.checking { background: var(--primary-light); color: var(--primary); }
+    .phone-status.success { background: var(--success-light); color: var(--success); }
+    .phone-status.error { background: var(--error-light); color: var(--error); }
+    .phone-status.warning { background: var(--warning-light); color: var(--warning); }
+    .summary-card { background: var(--primary-light); border-radius: 12px; padding: 16px; margin-bottom: 16px; }
+    .summary-row { display: flex; align-items: flex-start; gap: 10px; padding: 8px 0; border-bottom: 1px solid rgba(26, 95, 122, 0.1); }
     .summary-row:last-child { border-bottom: none; }
-
-    .summary-icon {
-      width: 20px;
-      text-align: center;
-      flex-shrink: 0;
-    }
-
-    .summary-label {
-      font-size: 11px;
-      color: var(--text-light);
-      margin-bottom: 2px;
-    }
-
-    .summary-value {
-      font-size: 13px;
-      font-weight: 600;
-      color: var(--text);
-    }
-
-    .summary-price {
-      background: var(--accent);
-      color: white;
-      padding: 12px 16px;
-      border-radius: 10px;
-      display: flex;
-      justify-content: space-between;
-      align-items: center;
-      margin-top: 12px;
-    }
-
+    .summary-icon { width: 20px; text-align: center; flex-shrink: 0; }
+    .summary-label { font-size: 11px; color: var(--text-light); margin-bottom: 2px; }
+    .summary-value { font-size: 13px; font-weight: 600; color: var(--text); }
+    .summary-price { background: var(--accent); color: white; padding: 12px 16px; border-radius: 10px; display: flex; justify-content: space-between; align-items: center; margin-top: 12px; }
     .summary-price .label { font-size: 13px; }
     .summary-price .amount { font-size: 18px; font-weight: 700; }
-
-    /* Buttons */
-    .btn-primary {
-      width: 100%;
-      padding: 14px;
-      background: var(--primary);
-      color: white;
-      border: none;
-      border-radius: 10px;
-      font-size: 14px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-    }
-
+    .btn-primary { width: 100%; padding: 14px; background: var(--primary); color: white; border: none; border-radius: 10px; font-size: 14px; font-weight: 600; cursor: pointer; transition: all 0.2s; }
     .btn-primary:hover { background: var(--primary-dark); }
     .btn-primary:disabled { background: var(--disabled); cursor: not-allowed; }
-
-    .btn-secondary {
-      width: 100%;
-      padding: 12px;
-      background: var(--bg);
-      color: var(--primary);
-      border: 2px solid var(--primary);
-      border-radius: 10px;
-      font-size: 13px;
-      font-weight: 600;
-      cursor: pointer;
-      transition: all 0.2s;
-      margin-top: 10px;
-    }
-
+    .btn-secondary { width: 100%; padding: 12px; background: var(--bg); color: var(--primary); border: 2px solid var(--primary); border-radius: 10px; font-size: 13px; font-weight: 600; cursor: pointer; transition: all 0.2s; margin-top: 10px; }
     .btn-secondary:hover { background: var(--primary-light); }
-
-    /* Loading */
-    .loading-container {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 60px 20px;
-    }
-
-    .spinner {
-      width: 40px;
-      height: 40px;
-      border: 3px solid var(--border);
-      border-top-color: var(--primary);
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-      margin-bottom: 16px;
-    }
-
+    .loading-container { display: flex; flex-direction: column; align-items: center; justify-content: center; padding: 60px 20px; }
+    .spinner { width: 40px; height: 40px; border: 3px solid var(--border); border-top-color: var(--primary); border-radius: 50%; animation: spin 0.8s linear infinite; margin-bottom: 16px; }
     @keyframes spin { to { transform: rotate(360deg); } }
-
-    .loading-text {
-      font-size: 14px;
-      color: var(--text-light);
-    }
-
-    /* Success */
-    .success-container {
-      text-align: center;
-      padding: 40px 20px;
-    }
-
-    .success-icon {
-      width: 80px;
-      height: 80px;
-      background: var(--success-light);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 auto 20px;
-      font-size: 40px;
-    }
-
-    .success-title {
-      font-size: 20px;
-      font-weight: 700;
-      color: var(--success);
-      margin-bottom: 12px;
-    }
-
-    .success-message {
-      font-size: 14px;
-      color: var(--text-light);
-      line-height: 1.6;
-      margin-bottom: 24px;
-    }
-
-    /* Error */
-    .error-container {
-      text-align: center;
-      padding: 40px 20px;
-    }
-
-    .error-icon {
-      width: 80px;
-      height: 80px;
-      background: var(--error-light);
-      border-radius: 50%;
-      display: flex;
-      align-items: center;
-      justify-content: center;
-      margin: 0 auto 20px;
-      font-size: 40px;
-    }
-
-    .error-title {
-      font-size: 20px;
-      font-weight: 700;
-      color: var(--error);
-      margin-bottom: 12px;
-    }
-
-    .error-message {
-      font-size: 14px;
-      color: var(--text-light);
-      line-height: 1.6;
-      margin-bottom: 24px;
-    }
-
-    /* Empty state */
-    .empty-state {
-      text-align: center;
-      padding: 40px 20px;
-      color: var(--text-light);
-    }
-
-    .empty-state .icon {
-      font-size: 48px;
-      margin-bottom: 12px;
-    }
-
-    /* Scrollbar */
+    .loading-text { font-size: 14px; color: var(--text-light); }
+    .success-container { text-align: center; padding: 40px 20px; }
+    .success-icon { width: 80px; height: 80px; background: var(--success-light); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-size: 40px; }
+    .success-title { font-size: 20px; font-weight: 700; color: var(--success); margin-bottom: 12px; }
+    .success-message { font-size: 14px; color: var(--text-light); line-height: 1.6; margin-bottom: 24px; }
+    .error-container { text-align: center; padding: 40px 20px; }
+    .error-icon { width: 80px; height: 80px; background: var(--error-light); border-radius: 50%; display: flex; align-items: center; justify-content: center; margin: 0 auto 20px; font-size: 40px; }
+    .error-title { font-size: 20px; font-weight: 700; color: var(--error); margin-bottom: 12px; }
+    .error-message { font-size: 14px; color: var(--text-light); line-height: 1.6; margin-bottom: 24px; }
+    .empty-state { text-align: center; padding: 40px 20px; color: var(--text-light); }
+    .empty-state .icon { font-size: 48px; margin-bottom: 12px; }
     ::-webkit-scrollbar { width: 5px; }
     ::-webkit-scrollbar-track { background: var(--border); border-radius: 3px; }
     ::-webkit-scrollbar-thumb { background: var(--primary); border-radius: 3px; }
@@ -897,39 +158,26 @@
       <div class="loading-text">O secundă...</div>
     </div>
   </div>
-
   <script>
-    // =====================================================
-    // CONFIGURATION
-    // =====================================================
     const CONFIG = {
       availabilityWebhook: 'https://hook.eu1.make.com/6nmbzcxoqlfy2gfaagvtfylsq3yiptfh',
       bookingWebhook: 'https://hook.eu1.make.com/7u9e5kwut77u7bekm8poglrmmlw62cym',
-      phoneCheckWebhook: '' // URL for phone verification - to be set
+      phoneCheckWebhook: ''
     };
 
-    // =====================================================
-    // CONSTANTS
-    // =====================================================
-    const MONTHS_RO = ['Ianuarie', 'Februarie', 'Martie', 'Aprilie', 'Mai', 'Iunie', 
-                       'Iulie', 'August', 'Septembrie', 'Octombrie', 'Noiembrie', 'Decembrie'];
-    // Monday first
+    const MONTHS_RO = ['Ianuarie', 'Februarie', 'Martie', 'Aprilie', 'Mai', 'Iunie', 'Iulie', 'August', 'Septembrie', 'Octombrie', 'Noiembrie', 'Decembrie'];
     const DAYS_RO = ['Lu', 'Ma', 'Mi', 'Jo', 'Vi', 'Sâ', 'Du'];
-    // Index 0 = Sunday in JS, so we keep this for getDay() but use helper function
     const DAY_NAMES = ['Duminică', 'Luni', 'Marți', 'Miercuri', 'Joi', 'Vineri', 'Sâmbătă'];
-    
-    // Helper to parse date string safely (avoids timezone issues)
+
     function parseDateString(dateStr) {
       const [year, month, day] = dateStr.split('-').map(Number);
       return new Date(year, month - 1, day);
     }
 
     const SERVICE_TYPES = {
-      // Adulți
       'psihoterapie-adult': { label: 'Psihoterapie individuală', airtable: 'Psihoterapie adulti', api: 'Psihoterapie adulti' },
       'psihoterapie-cuplu': { label: 'Psihoterapie de cuplu', airtable: 'Psihoterapie cuplu', api: 'Psihoterapie cuplu' },
       'psihiatrie-adult': { label: 'Psihiatrie', airtable: 'Psihiatrie adulti', api: 'Psihiatrie adulti' },
-      // Copii/Adolescenți
       'psihoterapie-copil': { label: 'Psihoterapie copii', airtable: 'Psihoterapie copii', api: 'Psihoterapie copii' },
       'psihoterapie-adolescent': { label: 'Psihoterapie adolescenți', airtable: 'Psihoterapie adolescenti', api: 'Psihoterapie adolescenti' },
       'psihiatrie-copil': { label: 'Psihiatrie pediatrică', airtable: 'Psihiatrie pediatrica', api: 'Psihiatrie pediatrica' },
@@ -941,435 +189,202 @@
       '2': { name: 'Primăverii', address: 'Strada Pictor Ion Negulici 4' }
     };
 
-    // Age groups for selection
     const AGE_GROUPS_ADULT = [
       { key: '18-30', label: '18 - 30 ani', min: 18, max: 30 },
       { key: '30+', label: 'Peste 30 ani', min: 31, max: 99 }
     ];
-
     const AGE_GROUPS_CHILD = [
       { key: '3-13', label: '3 - 13 ani', min: 3, max: 13 },
       { key: '14-18', label: '14 - 18 ani', min: 14, max: 18 }
     ];
+    const AGE_GROUPS_LOGOPEDIE = [{ key: '3-14', label: '3 - 14 ani', min: 3, max: 14 }];
+    const AGE_GROUPS_PSIHIATRIE_COPIL = [{ key: '0-18', label: '0 - 18 ani', min: 0, max: 18 }];
 
-    const AGE_GROUPS_LOGOPEDIE = [
-      { key: '3-14', label: '3 - 14 ani', min: 3, max: 14 }
-    ];
-
-    const AGE_GROUPS_PSIHIATRIE_COPIL = [
-      { key: '0-18', label: '0 - 18 ani', min: 0, max: 18 }
-    ];
-
-    // Reasons by category
-    const REASONS_ADULT = [
-      'Anxietate / Atacuri de panică',
-      'Depresie',
-      'Burnout / Stres',
-      'Traume emoționale',
-      'Relații / Cuplu / Familie',
-      'Dezvoltare personală'
-    ];
-
-    const REASONS_CHILD = [
-      'Anxietate / Stres',
-      'Depresie / Stări emoționale',
-      'Tulburări de comportament',
-      'Traume emoționale',
-      'ADHD / TOC',
-      'Tulburări de personalitate'
-    ];
-
-    const REASONS_LOGOPEDIE = [
-      'Dificultăți de vorbire/pronunție',
-      'Bâlbâială',
-      'Dificultăți de auz',
-      'Dislexie',
-      'Întârzieri în dezvoltare'
-    ];
+    const REASONS_ADULT = ['Anxietate / Atacuri de panică','Depresie','Burnout / Stres','Traume emoționale','Relații / Cuplu / Familie','Dezvoltare personală'];
+    const REASONS_CHILD = ['Anxietate / Stres','Depresie / Stări emoționale','Tulburări de comportament','Traume emoționale','ADHD / TOC','Tulburări de personalitate'];
+    const REASONS_LOGOPEDIE = ['Dificultăți de vorbire/pronunție','Bâlbâială','Dificultăți de auz','Dislexie','Întârzieri în dezvoltare'];
 
     const SESSION_DURATION = 50;
 
-    // Price calculation
+    function normalizeDoctor(d) {
+      if (d.DoctorId !== undefined) return d;
+      return {
+        DoctorId: d.doctor_id, Name: d.name, Active: d.active,
+        SpecialtyType: d.specialty_type || [], Photo: d.photo,
+        ShortBio: d.short_bio, LocationIds: d.location_ids,
+        AgeGroupMin: d.age_group_min, AgeGroupMax: d.age_group_max,
+        DoctorType: d.doctor_type, ProblemTags: d.problem_tags || [],
+        Languages: d.languages || []
+      };
+    }
+
+    function extractDoctors(rawDoctors) {
+      if (!rawDoctors || !Array.isArray(rawDoctors)) return [];
+      if (rawDoctors.length > 0 && rawDoctors[0] && rawDoctors[0].data) {
+        return rawDoctors.flatMap(item => item.data || []).map(normalizeDoctor);
+      }
+      return rawDoctors.map(normalizeDoctor);
+    }
+
     function calculatePrice(serviceType, doctorType, language) {
       const isEnglish = language === 'Engleza';
-      
-      if (serviceType === 'psihoterapie-adult' || serviceType === 'psihoterapie-copil' || serviceType === 'psihoterapie-adolescent') {
-        return isEnglish ? 320 : 290;
-      }
-      if (serviceType === 'psihoterapie-cuplu') {
-        return isEnglish ? 380 : 320;
-      }
+      if (serviceType === 'psihoterapie-adult' || serviceType === 'psihoterapie-copil' || serviceType === 'psihoterapie-adolescent') return isEnglish ? 320 : 290;
+      if (serviceType === 'psihoterapie-cuplu') return isEnglish ? 380 : 320;
       if (serviceType === 'psihiatrie-adult' || serviceType === 'psihiatrie-copil') {
-        const isPrimar = doctorType === 'Primar';
-        if (isPrimar) return isEnglish ? 410 : 350;
+        if (doctorType === 'Primar') return isEnglish ? 410 : 350;
         return isEnglish ? 360 : 310;
       }
-      if (serviceType === 'logopedie') {
-        return isEnglish ? 290 : 190;
-      }
+      if (serviceType === 'logopedie') return isEnglish ? 290 : 190;
       return 290;
     }
 
-    // =====================================================
-    // STATE
-    // =====================================================
     let state = {
-      step: 'loading',
-      loading: true,
-      bookingInProgress: false,
-      
-      // Data
-      allSlots: [],
-      allDoctors: [],
-      filteredDoctors: [],
-      
-      // Flow type
-      flowType: null, // 'search' or 'guided'
-      
-      // Search
-      searchQuery: '',
-      
-      // Selections
-      patientType: null,
-      serviceType: null,
-      selectedAgeGroup: null, // { key, label, min, max }
-      childAge: null,
-      sessionFormat: null,
-      locationId: null,
-      language: null,
-      selectedReason: null,
-      otherReason: '',
-      
-      selectedDoctor: null,
-      selectedDate: null,
-      selectedTime: null,
-      
-      // Patient data
-      patientName: '',
-      patientPhone: '',
-      patientEmail: '',
-      
-      // Phone verification
-      phoneChecked: false,
-      phoneCanBook: true,
-      phoneCheckLoading: false,
-      
-      // Calendar
-      currentMonth: new Date(),
-      
-      // Results
-      appointmentId: null,
-      errorMessage: null
+      step: 'loading', loading: true, bookingInProgress: false,
+      allSlots: [], allDoctors: [], filteredDoctors: [],
+      flowType: null, searchQuery: '',
+      patientType: null, serviceType: null, selectedAgeGroup: null,
+      childAge: null, sessionFormat: null, locationId: null,
+      language: null, selectedReason: null, otherReason: '',
+      selectedDoctor: null, selectedDate: null, selectedTime: null,
+      patientName: '', patientPhone: '', patientEmail: '',
+      phoneChecked: false, phoneCanBook: true, phoneCheckLoading: false,
+      currentMonth: new Date(), appointmentId: null, errorMessage: null
     };
 
-    
-    // Price calculation
-    function calculatePrice(serviceType, doctorType, language) {
-      const isEnglish = language === 'Engleza';
-      
-      if (serviceType === 'psihoterapie-adult' || serviceType === 'psihoterapie-copil' || serviceType === 'psihoterapie-adolescent') {
-        return isEnglish ? 320 : 290;
-      }
-      if (serviceType === 'psihoterapie-cuplu') {
-        return isEnglish ? 380 : 320;
-      }
-      if (serviceType === 'psihiatrie-adult' || serviceType === 'psihiatrie-copil') {
-        const isPrimar = doctorType === 'Primar';
-        if (isPrimar) return isEnglish ? 410 : 350;
-        return isEnglish ? 360 : 310;
-      }
-      if (serviceType === 'logopedie') {
-        return isEnglish ? 290 : 190;
-      }
-      return 290;
-    }
-    
-    // =====================================================
-    // INITIALIZATION
-    // =====================================================
     async function init() {
       const params = new URLSearchParams(window.location.search);
       if (params.get('availabilityWebhook')) CONFIG.availabilityWebhook = params.get('availabilityWebhook');
       if (params.get('bookingWebhook')) CONFIG.bookingWebhook = params.get('bookingWebhook');
       if (params.get('phoneCheckWebhook')) CONFIG.phoneCheckWebhook = params.get('phoneCheckWebhook');
-      
-      if (window.bookingConfig) {
-        Object.assign(CONFIG, window.bookingConfig);
-      }
-
+      if (window.bookingConfig) Object.assign(CONFIG, window.bookingConfig);
       await fetchAllData();
     }
 
     async function fetchAllData() {
-      state.loading = true;
-      state.step = 'loading';
-      render();
-
+      state.loading = true; state.step = 'loading'; render();
       try {
         const today = new Date();
         const dateStart = formatDateISO(today);
         const dateEnd = formatDateISO(new Date(today.getTime() + 60 * 24 * 60 * 60 * 1000));
-
-        // Fetch for both locations
         const [data1, data2] = await Promise.all([
           fetchAvailability('1', dateStart, dateEnd),
           fetchAvailability('2', dateStart, dateEnd)
         ]);
-
-        // Combine slots
         state.allSlots = [
           ...(data1.slots || []).map(s => ({ ...s, LocationId: 1 })),
           ...(data2.slots || []).map(s => ({ ...s, LocationId: 2 }))
         ];
-
-        // Combine doctors (dedupe)
         const doctorsMap = {};
         [...extractDoctors(data1.doctors), ...extractDoctors(data2.doctors)].forEach(d => {
-          if (!doctorsMap[d.DoctorId]) {
-            doctorsMap[d.DoctorId] = d;
-          }
+          if (!doctorsMap[d.DoctorId]) doctorsMap[d.DoctorId] = d;
         });
         state.allDoctors = Object.values(doctorsMap);
-
         console.log('Loaded:', state.allSlots.length, 'slots,', state.allDoctors.length, 'doctors');
-
-        state.loading = false;
-        state.step = 'start';
+        state.loading = false; state.step = 'start';
       } catch (err) {
         console.error('Init error:', err);
-        state.loading = false;
-        state.step = 'error';
+        state.loading = false; state.step = 'error';
         state.errorMessage = 'Nu am putut încărca datele. Te rugăm reîncarcă pagina.';
       }
-
       render();
     }
 
     async function fetchAvailability(locationId, dateStart, dateEnd) {
       const response = await fetch(CONFIG.availabilityWebhook, {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        method: 'POST', headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ locationId, dateStart, dateEnd, serviceType: 'Psihoterapie adulti' })
       });
       if (!response.ok) throw new Error('Network error');
       return await response.json();
     }
 
-    // =====================================================
-    // UTILITIES
-    // =====================================================
     function formatDateISO(date) {
-      const year = date.getFullYear();
-      const month = String(date.getMonth() + 1).padStart(2, '0');
-      const day = String(date.getDate()).padStart(2, '0');
-      return `${year}-${month}-${day}`;
+      return `${date.getFullYear()}-${String(date.getMonth()+1).padStart(2,'0')}-${String(date.getDate()).padStart(2,'0')}`;
     }
+    function parseSlotDateTime(isoString) { return new Date(isoString); }
+    function getSlotDate(slot) { return slot.StartDateTime.substring(0, 10); }
+    function getInitials(name) { return name?.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || '?'; }
 
-    function parseSlotDateTime(isoString) {
-      return new Date(isoString);
-    }
-
-    function getSlotDate(slot) {
-      return slot.StartDateTime.substring(0, 10);
-    }
-
-    function getInitials(name) {
-      return name?.split(' ').map(n => n[0]).join('').substring(0, 2).toUpperCase() || '?';
-    }
-
-    // Minimum hours before appointment can be booked
     const MIN_BOOKING_HOURS = 48;
 
     function getDoctorSlots(doctorId, locationId = null) {
-      const now = new Date();
-      const minBookingTime = new Date(now.getTime() + MIN_BOOKING_HOURS * 60 * 60 * 1000);
-      
+      const minBookingTime = new Date(Date.now() + MIN_BOOKING_HOURS * 3600000);
       return state.allSlots.filter(s => {
         if (s.DoctorId !== doctorId) return false;
         if (locationId && s.LocationId !== parseInt(locationId)) return false;
-        
-        // Check if slot is at least 24 hours away
-        const slotTime = parseSlotDateTime(s.StartDateTime);
-        if (slotTime < minBookingTime) return false;
-        
-        return true;
+        return parseSlotDateTime(s.StartDateTime) >= minBookingTime;
       });
     }
 
     function getDoctorAvailableDates(doctorId, locationId = null) {
-      const slots = getDoctorSlots(doctorId, locationId); // Already filtered by 24h rule
       const dates = new Set();
-      slots.forEach(s => {
-        const date = getSlotDate(s);
-        dates.add(date);
-      });
+      getDoctorSlots(doctorId, locationId).forEach(s => dates.add(getSlotDate(s)));
       return dates;
     }
 
     function generateTimeSlots(rawSlots) {
       const allTimes = [];
-      const now = new Date();
-      const minBookingTime = new Date(now.getTime() + MIN_BOOKING_HOURS * 60 * 60 * 1000);
-      
+      const minBookingTime = new Date(Date.now() + MIN_BOOKING_HOURS * 3600000);
       rawSlots.forEach(slot => {
         const start = parseSlotDateTime(slot.StartDateTime);
         const end = parseSlotDateTime(slot.EndDateTime);
-        
-        // Start from the first full hour >= start time
         let current = new Date(start);
-        const startMins = current.getUTCMinutes();
-        if (startMins > 0) {
-          // Round up to next full hour
-          current.setUTCMinutes(0);
-          current.setUTCHours(current.getUTCHours() + 1);
-        }
-        
-        // Generate slots only at full hours (:00)
-        while (current.getTime() + SESSION_DURATION * 60 * 1000 <= end.getTime()) {
-          // Skip if less than 24 hours away
+        if (current.getUTCMinutes() > 0) { current.setUTCMinutes(0); current.setUTCHours(current.getUTCHours() + 1); }
+        while (current.getTime() + SESSION_DURATION * 60000 <= end.getTime()) {
           if (current >= minBookingTime) {
-            const hours = current.getUTCHours();
-            const timeStr = String(hours).padStart(2, '0') + ':00';
-            allTimes.push({ 
-              time: timeStr, 
-              startDateTime: slot.StartDateTime.substring(0, 11) + timeStr + ':00' 
-            });
+            const timeStr = String(current.getUTCHours()).padStart(2, '0') + ':00';
+            allTimes.push({ time: timeStr, startDateTime: slot.StartDateTime.substring(0, 11) + timeStr + ':00' });
           }
-          // Move to next full hour
           current.setUTCHours(current.getUTCHours() + 1);
         }
       });
-      
       const unique = {};
       allTimes.forEach(t => { unique[t.time] = t; });
       return Object.values(unique).sort((a, b) => a.time.localeCompare(b.time));
     }
 
     function getTimeSlotsForDoctorDate(doctorId, dateStr, locationId = null) {
-      const now = new Date();
-      const minBookingTime = new Date(now.getTime() + MIN_BOOKING_HOURS * 60 * 60 * 1000);
-      
+      const minBookingTime = new Date(Date.now() + MIN_BOOKING_HOURS * 3600000);
       const slots = state.allSlots.filter(s => {
         if (s.DoctorId !== doctorId) return false;
         if (!s.StartDateTime.startsWith(dateStr)) return false;
         if (locationId && s.LocationId !== parseInt(locationId)) return false;
-        
-        // Check if slot is at least 24 hours away
-        const slotTime = parseSlotDateTime(s.StartDateTime);
-        if (slotTime < minBookingTime) return false;
-        
-        return true;
+        return parseSlotDateTime(s.StartDateTime) >= minBookingTime;
       });
       return generateTimeSlots(slots);
     }
 
     function filterDoctorsByService() {
-      let doctors = [...state.allDoctors];
-      
-      console.log('Filtering doctors. Total:', doctors.length);
-      console.log('Filters:', {
-        serviceType: state.serviceType,
-        ageGroup: state.selectedAgeGroup,
-        locationId: state.locationId,
-        sessionFormat: state.sessionFormat,
-        language: state.language
-      });
-      
-      // Filter by Active (should already be filtered from Airtable, but just in case)
-      doctors = doctors.filter(d => d.Active !== false);
-      
-      // Filter by specialty based on service type
+      let doctors = [...state.allDoctors].filter(d => d.Active !== false);
       if (state.serviceType) {
-        const airtableSpecialty = SERVICE_TYPES[state.serviceType]?.airtable || '';
-        console.log('Looking for specialty:', airtableSpecialty);
-        
-        doctors = doctors.filter(d => {
-          const specialties = d.SpecialtyType || [];
-          const hasSpecialty = specialties.some(s => 
-            s.toLowerCase().trim() === airtableSpecialty.toLowerCase().trim()
-          );
-          if (!hasSpecialty) {
-            console.log('Doctor', d.Name, 'excluded - specialties:', specialties);
-          }
-          return hasSpecialty;
-        });
-        console.log('After specialty filter:', doctors.length);
+        const spec = SERVICE_TYPES[state.serviceType]?.airtable || '';
+        doctors = doctors.filter(d => (d.SpecialtyType || []).some(s => s.toLowerCase().trim() === spec.toLowerCase().trim()));
       }
-      
-      // Filter by location (only if cabinet, not online)
       if (state.locationId && state.sessionFormat === 'cabinet') {
-        doctors = doctors.filter(d => {
-          const locIds = String(d.LocationIds || '').split(',').map(s => s.trim());
-          return locIds.includes(state.locationId);
-        });
-        console.log('After location filter:', doctors.length);
+        doctors = doctors.filter(d => String(d.LocationIds || '').split(',').map(s => s.trim()).includes(state.locationId));
       }
-      
-      // Filter by age group
       if (state.selectedAgeGroup) {
-        const ageMin = state.selectedAgeGroup.min;
-        const ageMax = state.selectedAgeGroup.max;
-        
-        doctors = doctors.filter(d => {
-          const docMin = d.AgeGroupMin || 0;
-          const docMax = d.AgeGroupMax || 99;
-          // Doctor's range should overlap with selected range
-          // Doctor can see patient if: docMin <= ageMax AND docMax >= ageMin
-          const canSee = docMin <= ageMax && docMax >= ageMin;
-          if (!canSee) {
-            console.log('Doctor', d.Name, 'excluded - age range:', docMin, '-', docMax, 'vs', ageMin, '-', ageMax);
-          }
-          return canSee;
-        });
-        console.log('After age filter:', doctors.length);
+        const { min, max } = state.selectedAgeGroup;
+        doctors = doctors.filter(d => (d.AgeGroupMin || 0) <= max && (d.AgeGroupMax || 99) >= min);
       }
-      
-      // Filter by language
       if (state.language) {
-        doctors = doctors.filter(d => {
-          const langs = d.Languages || [];
-          return langs.some(l => l.toLowerCase().trim() === state.language.toLowerCase().trim());
-        });
-        console.log('After language filter:', doctors.length);
+        doctors = doctors.filter(d => (d.Languages || []).some(l => l.toLowerCase().trim() === state.language.toLowerCase().trim()));
       }
-      
-      // Add slot counts
-      const locationForSlots = state.sessionFormat === 'online' ? null : state.locationId;
-      doctors = doctors.map(d => ({
-        ...d,
-        slotsCount: getDoctorSlots(d.DoctorId, locationForSlots).length
-      })).filter(d => d.slotsCount > 0);
-      
-      console.log('After slots filter:', doctors.length);
-      
+      const locForSlots = state.sessionFormat === 'online' ? null : state.locationId;
+      doctors = doctors.map(d => ({ ...d, slotsCount: getDoctorSlots(d.DoctorId, locForSlots).length })).filter(d => d.slotsCount > 0);
       doctors.sort((a, b) => b.slotsCount - a.slotsCount);
       state.filteredDoctors = doctors;
     }
 
     function searchDoctors(query) {
-      // Show ALL active doctors with slots
       let doctors = state.allDoctors.filter(d => d.Active !== false);
-      
-      // Add slot counts
-      doctors = doctors.map(d => ({
-        ...d,
-        slotsCount: getDoctorSlots(d.DoctorId).length
-      })).filter(d => d.slotsCount > 0);
-      
-      // Filter by search query if provided
+      doctors = doctors.map(d => ({ ...d, slotsCount: getDoctorSlots(d.DoctorId).length })).filter(d => d.slotsCount > 0);
       if (query && query.trim()) {
         const q = query.toLowerCase().trim();
-        doctors = doctors.filter(d => {
-          const name = (d.Name || '').toLowerCase();
-          const specialty = (d.ShortBio || '').toLowerCase();
-          const specialties = (d.SpecialtyType || []).join(' ').toLowerCase();
-          return name.includes(q) || specialty.includes(q) || specialties.includes(q);
-        });
+        doctors = doctors.filter(d => (d.Name||'').toLowerCase().includes(q) || (d.ShortBio||'').toLowerCase().includes(q) || (d.SpecialtyType||[]).join(' ').toLowerCase().includes(q));
       }
-      
       doctors.sort((a, b) => b.slotsCount - a.slotsCount);
       state.filteredDoctors = doctors;
-      console.log('Search results:', doctors.length, 'doctors');
     }
 
     function getReasonsList() {
@@ -1378,1330 +393,315 @@
       return REASONS_ADULT;
     }
 
-    // =====================================================
-    // PHONE VERIFICATION
-    // =====================================================
     let phoneCheckTimeout = null;
-
     async function checkPhone(phone) {
-      if (!phone || phone.length < 10) {
-        state.phoneChecked = false;
-        state.phoneCanBook = true;
-        updatePhoneStatus();
-        return;
-      }
-
-      // Skip if no webhook configured
-      if (!CONFIG.phoneCheckWebhook) {
-        state.phoneChecked = true;
-        state.phoneCanBook = true;
-        updatePhoneStatus();
-        return;
-      }
-
-      state.phoneCheckLoading = true;
-      updatePhoneStatus();
-
+      if (!phone || phone.length < 10) { state.phoneChecked = false; state.phoneCanBook = true; updatePhoneStatus(); return; }
+      if (!CONFIG.phoneCheckWebhook) { state.phoneChecked = true; state.phoneCanBook = true; updatePhoneStatus(); return; }
+      state.phoneCheckLoading = true; updatePhoneStatus();
       try {
-        const response = await fetch(CONFIG.phoneCheckWebhook, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ phoneNumber: phone })
-        });
-
-        if (response.ok) {
-          const data = await response.json();
-          state.phoneCanBook = data.canBook !== false;
-          state.phoneChecked = true;
-        }
-      } catch (err) {
-        console.error('Phone check error:', err);
-        state.phoneCanBook = true;
-        state.phoneChecked = true;
-      }
-
-      state.phoneCheckLoading = false;
-      updatePhoneStatus();
+        const response = await fetch(CONFIG.phoneCheckWebhook, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ phoneNumber: phone }) });
+        if (response.ok) { const data = await response.json(); state.phoneCanBook = data.canBook !== false; state.phoneChecked = true; }
+      } catch (err) { state.phoneCanBook = true; state.phoneChecked = true; }
+      state.phoneCheckLoading = false; updatePhoneStatus();
     }
 
     function handlePhoneInput(value) {
-      state.patientPhone = value;
-      state.phoneChecked = false;
-      
+      state.patientPhone = value; state.phoneChecked = false;
       clearTimeout(phoneCheckTimeout);
-      if (value.length >= 10) {
-        phoneCheckTimeout = setTimeout(() => checkPhone(value), 500);
-      } else {
-        updatePhoneStatus();
-      }
+      if (value.length >= 10) phoneCheckTimeout = setTimeout(() => checkPhone(value), 500);
+      else updatePhoneStatus();
     }
 
-    // =====================================================
-    // BOOKING
-    // =====================================================
     async function submitBooking() {
-      state.bookingInProgress = true;
-      state.step = 'booking';
-      render();
-
+      state.bookingInProgress = true; state.step = 'booking'; render();
       try {
         const [hours, mins] = state.selectedTime.time.split(':').map(Number);
-        const startMins = hours * 60 + mins;
-        const endMins = startMins + SESSION_DURATION;
-        const endHours = Math.floor(endMins / 60);
-        const endMinutes = endMins % 60;
-        const endTime = String(endHours).padStart(2, '0') + ':' + String(endMinutes).padStart(2, '0');
-
+        const endMins = hours * 60 + mins + SESSION_DURATION;
+        const endTime = String(Math.floor(endMins/60)).padStart(2,'0') + ':' + String(endMins%60).padStart(2,'0');
         const serviceLabel = SERVICE_TYPES[state.serviceType]?.api || state.serviceType;
-        
         const date = parseDateString(state.selectedDate);
-        const dayNames = ['duminică', 'luni', 'marți', 'miercuri', 'joi', 'vineri', 'sâmbătă'];
-        const monthNames = ['ianuarie', 'februarie', 'martie', 'aprilie', 'mai', 'iunie', 'iulie', 'august', 'septembrie', 'octombrie', 'noiembrie', 'decembrie'];
-        const dayOfWeek = dayNames[date.getDay()];
-        const dayShort = ['Dum', 'Lun', 'Mar', 'Mie', 'Joi', 'Vin', 'Sâm'][date.getDay()];
-        
-        const dateDisplay = `${dayOfWeek}, ${date.getDate()} ${monthNames[date.getMonth()]} ${date.getFullYear()}`;
-        const timeDisplay = `${dayShort} ${String(date.getDate()).padStart(2, '0')}/${String(date.getMonth() + 1).padStart(2, '0')} ora ${state.selectedTime.time} - ${endTime}`;
-        
+        const dayNames = ['duminică','luni','marți','miercuri','joi','vineri','sâmbătă'];
+        const monthNames = ['ianuarie','februarie','martie','aprilie','mai','iunie','iulie','august','septembrie','octombrie','noiembrie','decembrie'];
+        const dayShort = ['Dum','Lun','Mar','Mie','Joi','Vin','Sâm'][date.getDay()];
+        const dateDisplay = `${dayNames[date.getDay()]}, ${date.getDate()} ${monthNames[date.getMonth()]} ${date.getFullYear()}`;
+        const timeDisplay = `${dayShort} ${String(date.getDate()).padStart(2,'0')}/${String(date.getMonth()+1).padStart(2,'0')} ora ${state.selectedTime.time} - ${endTime}`;
         const locationName = state.sessionFormat === 'online' ? 'Online' : (LOCATIONS[state.locationId]?.name || '');
         const price = calculatePrice(state.serviceType, state.selectedDoctor.DoctorType, state.language);
-
         const bookingData = {
           doctorId: String(state.selectedDoctor.DoctorId),
           locationId: String(state.sessionFormat === 'online' ? '1' : state.locationId),
           startDateTime: `${state.selectedDate} ${state.selectedTime.time}:00`,
           endDateTime: `${state.selectedDate} ${endTime}:00`,
-          patientName: state.patientName.trim(),
-          patientPhone: state.patientPhone.trim(),
-          patientEmail: state.patientEmail.trim() || '',
-          details: serviceLabel,
-          doctorName: state.selectedDoctor.Name,
-          dateDisplay: dateDisplay,
-          timeDisplay: timeDisplay,
-          locationName: locationName,
-          sessionFormat: state.sessionFormat || 'fizic',
-          language: state.language || 'Romana',
+          patientName: state.patientName.trim(), patientPhone: state.patientPhone.trim(),
+          patientEmail: state.patientEmail.trim() || '', details: serviceLabel,
+          doctorName: state.selectedDoctor.Name, dateDisplay, timeDisplay, locationName,
+          sessionFormat: state.sessionFormat || 'fizic', language: state.language || 'Romana',
           price: `${price} RON`
         };
-
-        console.log('Booking request:', bookingData);
-
-        const response = await fetch(CONFIG.bookingWebhook, {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify(bookingData)
-        });
-
-        console.log('Response status:', response.status);
-
-        // SIMPLU: Dacă HTTP status e 200-299, e SUCCES
-        if (response.ok) {
-          state.step = 'success';
-        } else {
-          throw new Error('HTTP ' + response.status);
-        }
-
+        const response = await fetch(CONFIG.bookingWebhook, { method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(bookingData) });
+        if (response.ok) state.step = 'success'; else throw new Error('HTTP ' + response.status);
       } catch (err) {
         console.error('Booking error:', err);
-        state.step = 'error';
-        state.errorMessage = 'Nu am putut finaliza programarea. Te rugăm contactează-ne telefonic la 021.781.22.59';
+        state.step = 'error'; state.errorMessage = 'Nu am putut finaliza programarea. Te rugăm contactează-ne telefonic la 021.781.22.59';
       }
-
-      state.bookingInProgress = false;
-      render();
+      state.bookingInProgress = false; render();
     }
-
-    // =====================================================
-    // NAVIGATION
-    // =====================================================
-    function goToStep(step) {
-      state.step = step;
-      render();
-    }
+    function goToStep(step) { state.step = step; render(); }
 
     function goBack() {
-      const guidedSteps = ['start', 'patient-type', 'service', 'age-group', 'format', 'location', 'language', 'doctor', 'calendar', 'time', 'patient-data', 'confirm'];
-      const searchSteps = ['start', 'search', 'search-format', 'search-location', 'search-language', 'calendar', 'time', 'patient-data', 'confirm'];
-      
+      const guidedSteps = ['start','patient-type','service','age-group','format','location','language','doctor','calendar','time','patient-data','confirm'];
+      const searchSteps = ['start','search','search-format','search-location','search-language','calendar','time','patient-data','confirm'];
       const steps = state.flowType === 'search' ? searchSteps : guidedSteps;
-      let currentIndex = steps.indexOf(state.step);
-      
-      if (currentIndex <= 0) {
-        state.step = 'start';
-        state.flowType = null;
-        render();
-        return;
-      }
-
-      // Find previous valid step
-      currentIndex--;
-      
+      let idx = steps.indexOf(state.step);
+      if (idx <= 0) { state.step = 'start'; state.flowType = null; render(); return; }
+      idx--;
       if (state.flowType === 'guided') {
-        // Skip format if not psihoterapie (psihiatrie and logopedie are cabinet only)
-        if (steps[currentIndex] === 'format' && !state.serviceType?.includes('psihoterapie')) {
-          currentIndex--;
-        }
-        // Skip location if online OR if psihiatrie-copil (only Primaverii)
-        if (steps[currentIndex] === 'location' && (state.sessionFormat === 'online' || state.serviceType === 'psihiatrie-copil')) {
-          currentIndex--;
-        }
-        // After skipping location, also skip format if needed
-        if (steps[currentIndex] === 'format' && !state.serviceType?.includes('psihoterapie')) {
-          currentIndex--;
-        }
+        if (steps[idx] === 'format' && !state.serviceType?.includes('psihoterapie')) idx--;
+        if (steps[idx] === 'location' && (state.sessionFormat === 'online' || state.serviceType === 'psihiatrie-copil')) idx--;
+        if (steps[idx] === 'format' && !state.serviceType?.includes('psihoterapie')) idx--;
       }
-
-      state.step = steps[Math.max(0, currentIndex)];
-      render();
+      state.step = steps[Math.max(0, idx)]; render();
     }
 
     function resetBooking() {
-      state = {
-        ...state,
-        step: 'start',
-        flowType: null,
-        searchQuery: '',
-        patientType: null,
-        serviceType: null,
-        selectedAgeGroup: null,
-        childAge: null,
-        sessionFormat: null,
-        locationId: null,
-        language: null,
-        selectedReason: null,
-        otherReason: '',
-        selectedDoctor: null,
-        selectedDate: null,
-        selectedTime: null,
-        patientName: '',
-        patientPhone: '',
-        patientEmail: '',
-        phoneChecked: false,
-        phoneCanBook: true,
-        appointmentId: null,
-        errorMessage: null,
-        currentMonth: new Date()
-      };
+      Object.assign(state, { step:'start', flowType:null, searchQuery:'', patientType:null, serviceType:null, selectedAgeGroup:null, childAge:null, sessionFormat:null, locationId:null, language:null, selectedReason:null, otherReason:'', selectedDoctor:null, selectedDate:null, selectedTime:null, patientName:'', patientPhone:'', patientEmail:'', phoneChecked:false, phoneCanBook:true, appointmentId:null, errorMessage:null, currentMonth:new Date() });
       render();
     }
 
-    // =====================================================
-    // RENDER
-    // =====================================================
     function render() {
       const app = document.getElementById('app');
-      
-      if (state.loading) {
-        app.innerHTML = renderLoading('Se încarcă disponibilitățile...');
-        return;
-      }
-
+      if (state.loading) { app.innerHTML = renderLoading('Se încarcă disponibilitățile...'); return; }
       const renderers = {
-        'loading': () => renderLoading('O secundă...'),
-        'start': renderStart,
-        'search': renderSearch,
-        'search-reason': renderSearchReason,
-        'search-format': renderSearchFormat,
-        'search-location': renderSearchLocation,
-        'search-language': renderSearchLanguage,
-        'patient-type': renderPatientType,
-        'service': renderService,
-        'age-group': renderAgeGroup,
-        'format': renderFormat,
-        'location': renderLocation,
-        'language': renderLanguage,
-        'reason': renderReason,
-        'doctor': renderDoctor,
-        'calendar': renderCalendar,
-        'time': renderTime,
-        'patient-data': renderPatientData,
-        'confirm': renderConfirm,
-        'booking': () => renderLoading('Se procesează programarea...'),
-        'success': renderSuccess,
-        'error': renderError
+        'loading': () => renderLoading('O secundă...'), 'start': renderStart, 'search': renderSearch,
+        'search-reason': renderSearchReason, 'search-format': renderSearchFormat,
+        'search-location': renderSearchLocation, 'search-language': renderSearchLanguage,
+        'patient-type': renderPatientType, 'service': renderService, 'age-group': renderAgeGroup,
+        'format': renderFormat, 'location': renderLocation, 'language': renderLanguage,
+        'reason': renderReason, 'doctor': renderDoctor, 'calendar': renderCalendar,
+        'time': renderTime, 'patient-data': renderPatientData, 'confirm': renderConfirm,
+        'booking': () => renderLoading('Se procesează programarea...'), 'success': renderSuccess, 'error': renderError
       };
-
-      const renderFn = renderers[state.step];
-      if (renderFn) {
-        app.innerHTML = renderProgress() + renderFn();
-        
-        // Initialize button states after render
-        if (state.step === 'patient-data') {
-          setTimeout(() => {
-            updatePatientButton();
-            updatePhoneStatus();
-          }, 0);
-        }
-        
-        // Restore focus for search input
-        if (state.step === 'search') {
-          const input = document.getElementById('search-input');
-          if (input) {
-            input.focus();
-            input.setSelectionRange(input.value.length, input.value.length);
-          }
-        }
+      const fn = renderers[state.step];
+      if (fn) {
+        app.innerHTML = renderProgress() + fn();
+        if (state.step === 'patient-data') setTimeout(() => { updatePatientButton(); updatePhoneStatus(); }, 0);
+        if (state.step === 'search') { const input = document.getElementById('search-input'); if (input) { input.focus(); input.setSelectionRange(input.value.length, input.value.length); } }
       }
     }
 
     function renderProgress() {
-      const totalSteps = 7;
-      let currentStep = 0;
-      
-      const stepMap = {
-        'start': 0,
-        'search': 1, 'search-format': 2, 'search-location': 2, 'search-language': 2,
-        'patient-type': 1, 'service': 2, 'age-group': 3, 'format': 4, 'location': 4, 'language': 4,
-        'doctor': 5, 'calendar': 6, 'time': 6, 'patient-data': 7, 'confirm': 7
-      };
-      
-      currentStep = stepMap[state.step] || 0;
-      
-      if (['success', 'error', 'booking', 'loading'].includes(state.step)) {
-        return '';
-      }
-
-      return `
-        <div class="progress-bar">
-          ${Array.from({length: totalSteps}, (_, i) => `
-            <div class="progress-step ${i < currentStep ? 'completed' : ''} ${i === currentStep ? 'active' : ''}"></div>
-          `).join('')}
-        </div>
-      `;
+      const stepMap = { 'start':0, 'search':1, 'search-format':2, 'search-location':2, 'search-language':2, 'patient-type':1, 'service':2, 'age-group':3, 'format':4, 'location':4, 'language':4, 'doctor':5, 'calendar':6, 'time':6, 'patient-data':7, 'confirm':7 };
+      if (['success','error','booking','loading'].includes(state.step)) return '';
+      const cur = stepMap[state.step] || 0;
+      return `<div class="progress-bar">${Array.from({length:7},(_,i)=>`<div class="progress-step ${i<cur?'completed':''} ${i===cur?'active':''}"></div>`).join('')}</div>`;
     }
 
-    function renderLoading(text) {
-      return `
-        <div class="loading-container">
-          <div class="spinner"></div>
-          <div class="loading-text">${text}</div>
-        </div>
-      `;
-    }
+    function renderLoading(text) { return `<div class="loading-container"><div class="spinner"></div><div class="loading-text">${text}</div></div>`; }
 
     function renderStart() {
-      return `
-        <div class="section">
-          <div class="section-header">
-            <div>
-              <div class="section-title">Bun venit!</div>
-              <div class="section-subtitle">Cum dorești să continui?</div>
-            </div>
-          </div>
-          
-          <div class="options-grid">
-            <div class="option-card primary-option" onclick="startGuidedFlow()">
-              <div class="option-icon">📅</div>
-              <div class="option-content">
-                <div class="option-title">Programează-te</div>
-                <div class="option-desc">Te ghidăm pas cu pas pentru a găsi specialistul potrivit</div>
-              </div>
-            </div>
-            
-            <div class="option-card" onclick="startSearchFlow()">
-              <div class="option-icon">🔍</div>
-              <div class="option-content">
-                <div class="option-title">Caut un specialist anume</div>
-                <div class="option-desc">Știu deja la cine vreau să mă programez</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      `;
+      return `<div class="section"><div class="section-header"><div><div class="section-title">Bun venit!</div><div class="section-subtitle">Cum dorești să continui?</div></div></div><div class="options-grid"><div class="option-card primary-option" onclick="startGuidedFlow()"><div class="option-icon">📅</div><div class="option-content"><div class="option-title">Programează-te</div><div class="option-desc">Te ghidăm pas cu pas pentru a găsi specialistul potrivit</div></div></div><div class="option-card" onclick="startSearchFlow()"><div class="option-icon">🔍</div><div class="option-content"><div class="option-title">Caut un specialist anume</div><div class="option-desc">Știu deja la cine vreau să mă programez</div></div></div></div></div>`;
     }
 
     function renderSearch() {
-      return `
-        <div class="section">
-          <div class="section-header">
-            <button class="back-btn" onclick="goBack()">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
-            </button>
-            <div>
-              <div class="section-title">Căutare specialist</div>
-              <div class="section-subtitle">Introdu numele sau specializarea</div>
-            </div>
-          </div>
-          
-          <div class="search-container">
-            <div class="search-box">
-              <span class="search-icon">🔍</span>
-              <input type="text" 
-                     id="search-input"
-                     placeholder="ex: Dr. Maria sau psihoterapeut..." 
-                     value="${state.searchQuery}"
-                     oninput="handleSearchInput(this.value)">
-            </div>
-          </div>
-          
-          <div class="doctors-list">
-            ${state.filteredDoctors.length === 0 ? `
-              <div class="empty-state">
-                <div class="icon">🔍</div>
-                <div>${state.searchQuery ? 'Nu am găsit specialiști. Încearcă alt termen.' : 'Începe să scrii pentru a căuta...'}</div>
-              </div>
-            ` : state.filteredDoctors.map(doc => renderDoctorCard(doc, 'selectDoctorFromSearch')).join('')}
-          </div>
-        </div>
-      `;
+      return `<div class="section"><div class="section-header"><button class="back-btn" onclick="goBack()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></button><div><div class="section-title">Căutare specialist</div><div class="section-subtitle">Introdu numele sau specializarea</div></div></div><div class="search-container"><div class="search-box"><span class="search-icon">🔍</span><input type="text" id="search-input" placeholder="ex: Dr. Maria sau psihoterapeut..." value="${state.searchQuery}" oninput="handleSearchInput(this.value)"></div></div><div class="doctors-list">${state.filteredDoctors.length===0?`<div class="empty-state"><div class="icon">🔍</div><div>${state.searchQuery?'Nu am găsit specialiști. Încearcă alt termen.':'Începe să scrii pentru a căuta...'}</div></div>`:state.filteredDoctors.map(doc=>renderDoctorCard(doc,'selectDoctorFromSearch')).join('')}</div></div>`;
     }
 
     function renderSearchReason() {
-      const reasons = getReasonsList();
-      const doc = state.selectedDoctor;
-      
-      return `
-        <div class="section">
-          <div class="section-header">
-            <button class="back-btn" onclick="goBack()">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
-            </button>
-            <div>
-              <div class="section-title">Care este motivul programării?</div>
-            </div>
-          </div>
-          
-          <div class="selected-badge">
-            ${doc.Photo ? `<img src="${doc.Photo}" alt="${doc.Name}">` : `<div class="initials">${getInitials(doc.Name)}</div>`}
-            <div class="info">
-              <div class="name">${doc.Name}</div>
-              <div class="detail">${doc.ShortBio || ''}</div>
-            </div>
-          </div>
-          
-          <div class="reasons-grid">
-            ${reasons.map(r => `
-              <div class="reason-item ${state.selectedReason === r ? 'selected' : ''}" onclick="selectReason('${r.replace(/'/g, "\\'")}')">
-                <div class="reason-checkbox">${state.selectedReason === r ? '✓' : ''}</div>
-                <span class="reason-label">${r}</span>
-              </div>
-            `).join('')}
-            
-            <div class="reason-item ${state.selectedReason === 'other' ? 'selected' : ''}" onclick="selectReason('other')">
-              <div class="reason-checkbox">${state.selectedReason === 'other' ? '✓' : ''}</div>
-              <input type="text" 
-                     class="other-input" 
-                     placeholder="Altceva (specificați)..."
-                     value="${state.otherReason}"
-                     onfocus="selectReason('other')"
-                     oninput="state.otherReason = this.value">
-            </div>
-          </div>
-          
-          <button class="btn-primary" 
-                  onclick="afterSearchReason()"
-                  ${!state.selectedReason || (state.selectedReason === 'other' && !state.otherReason.trim()) ? 'disabled' : ''}>
-            Continuă
-          </button>
-        </div>
-      `;
+      const reasons = getReasonsList(); const doc = state.selectedDoctor;
+      return `<div class="section"><div class="section-header"><button class="back-btn" onclick="goBack()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></button><div><div class="section-title">Care este motivul programării?</div></div></div><div class="selected-badge">${doc.Photo?`<img src="${doc.Photo}" alt="${doc.Name}">`:`<div class="initials">${getInitials(doc.Name)}</div>`}<div class="info"><div class="name">${doc.Name}</div><div class="detail">${doc.ShortBio||''}</div></div></div><div class="reasons-grid">${reasons.map(r=>`<div class="reason-item ${state.selectedReason===r?'selected':''}" onclick="selectReason('${r.replace(/'/g,"\\'")}')"><div class="reason-checkbox">${state.selectedReason===r?'✓':''}</div><span class="reason-label">${r}</span></div>`).join('')}<div class="reason-item ${state.selectedReason==='other'?'selected':''}" onclick="selectReason('other')"><div class="reason-checkbox">${state.selectedReason==='other'?'✓':''}</div><input type="text" class="other-input" placeholder="Altceva (specificați)..." value="${state.otherReason}" onfocus="selectReason('other')" oninput="state.otherReason=this.value"></div></div><button class="btn-primary" onclick="afterSearchReason()" ${!state.selectedReason||(state.selectedReason==='other'&&!state.otherReason.trim())?'disabled':''}>Continuă</button></div>`;
     }
 
     function renderSearchFormat() {
-      return `
-        <div class="section">
-          <div class="section-header">
-            <button class="back-btn" onclick="goBack()">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
-            </button>
-            <div class="section-title">Cum preferi ședința?</div>
-          </div>
-          
-          <div class="options-row">
-            <div class="option-card-small" onclick="selectSearchFormat('cabinet')">
-              <div class="option-icon">🏥</div>
-              <div class="option-title">La cabinet</div>
-            </div>
-            <div class="option-card-small" onclick="selectSearchFormat('online')">
-              <div class="option-icon">💻</div>
-              <div class="option-title">Online</div>
-            </div>
-          </div>
-        </div>
-      `;
+      return `<div class="section"><div class="section-header"><button class="back-btn" onclick="goBack()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></button><div class="section-title">Cum preferi ședința?</div></div><div class="options-row"><div class="option-card-small" onclick="selectSearchFormat('cabinet')"><div class="option-icon">🏥</div><div class="option-title">La cabinet</div></div><div class="option-card-small" onclick="selectSearchFormat('online')"><div class="option-icon">💻</div><div class="option-title">Online</div></div></div></div>`;
     }
 
     function renderSearchLocation() {
-      return `
-        <div class="section">
-          <div class="section-header">
-            <button class="back-btn" onclick="goBack()">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
-            </button>
-            <div class="section-title">La ce locație dorești?</div>
-          </div>
-          
-          <div class="options-grid">
-            ${getDoctorLocations().map(loc => `
-              <div class="option-card" onclick="selectSearchLocation('${loc.id}')">
-                <div class="option-icon">📍</div>
-                <div class="option-content">
-                  <div class="option-title">${loc.name}</div>
-                  <div class="option-desc">${loc.address}</div>
-                </div>
-              </div>
-            `).join('')}
-          </div>
-        </div>
-      `;
+      return `<div class="section"><div class="section-header"><button class="back-btn" onclick="goBack()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></button><div class="section-title">La ce locație dorești?</div></div><div class="options-grid">${getDoctorLocations().map(loc=>`<div class="option-card" onclick="selectSearchLocation('${loc.id}')"><div class="option-icon">📍</div><div class="option-content"><div class="option-title">${loc.name}</div><div class="option-desc">${loc.address}</div></div></div>`).join('')}</div></div>`;
     }
 
     function renderSearchLanguage() {
-      return `
-        <div class="section">
-          <div class="section-header">
-            <button class="back-btn" onclick="goBack()">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
-            </button>
-            <div class="section-title">În ce limbă preferi ședința?</div>
-          </div>
-          
-          <div class="options-row">
-            ${getDoctorLanguages().map(lang => `
-              <div class="option-card-small" onclick="selectSearchLanguage('${lang}')">
-                <div class="option-icon">${lang === 'Romana' ? '🇷🇴' : '🇬🇧'}</div>
-                <div class="option-title">${lang === 'Romana' ? 'Română' : lang}</div>
-              </div>
-            `).join('')}
-          </div>
-        </div>
-      `;
+      return `<div class="section"><div class="section-header"><button class="back-btn" onclick="goBack()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></button><div class="section-title">În ce limbă preferi ședința?</div></div><div class="options-row">${getDoctorLanguages().map(lang=>`<div class="option-card-small" onclick="selectSearchLanguage('${lang}')"><div class="option-icon">${lang==='Romana'?'🇷🇴':'🇬🇧'}</div><div class="option-title">${lang==='Romana'?'Română':lang}</div></div>`).join('')}</div></div>`;
     }
 
     function renderPatientType() {
-      return `
-        <div class="section">
-          <div class="section-header">
-            <button class="back-btn" onclick="goBack()">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
-            </button>
-            <div class="section-title">Pentru cine este programarea?</div>
-          </div>
-          
-          <div class="options-row">
-            <div class="option-card-small" onclick="selectPatientType('adult')">
-              <div class="option-icon">👤</div>
-              <div class="option-title">Adult</div>
-            </div>
-            <div class="option-card-small" onclick="selectPatientType('child')">
-              <div class="option-icon">👶</div>
-              <div class="option-title">Copil / Adolescent</div>
-            </div>
-          </div>
-        </div>
-      `;
+      return `<div class="section"><div class="section-header"><button class="back-btn" onclick="goBack()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></button><div class="section-title">Pentru cine este programarea?</div></div><div class="options-row"><div class="option-card-small" onclick="selectPatientType('adult')"><div class="option-icon">👤</div><div class="option-title">Adult</div></div><div class="option-card-small" onclick="selectPatientType('child')"><div class="option-icon">👶</div><div class="option-title">Copil / Adolescent</div></div></div></div>`;
     }
 
     function renderService() {
       const isChild = state.patientType === 'child';
       const services = isChild ? [
-        { key: 'psihoterapie-copil', icon: '🧠', title: 'Psihoterapie', desc: 'Terapie pentru copii și adolescenți' },
-        { key: 'psihiatrie-copil', icon: '⚕️', title: 'Psihiatrie pediatrică', desc: 'Evaluare și tratament medicamentos' },
-        { key: 'logopedie', icon: '🗣️', title: 'Logopedie', desc: 'Terapia tulburărilor de limbaj' }
+        {key:'psihoterapie-copil',icon:'🧠',title:'Psihoterapie',desc:'Terapie pentru copii și adolescenți'},
+        {key:'psihiatrie-copil',icon:'⚕️',title:'Psihiatrie pediatrică',desc:'Evaluare și tratament medicamentos'},
+        {key:'logopedie',icon:'🗣️',title:'Logopedie',desc:'Terapia tulburărilor de limbaj'}
       ] : [
-        { key: 'psihoterapie-adult', icon: '🧠', title: 'Psihoterapie individuală', desc: 'Ședințe de terapie pentru adulți' },
-        { key: 'psihoterapie-cuplu', icon: '💑', title: 'Psihoterapie de cuplu', desc: 'Terapie pentru cupluri' },
-        { key: 'psihiatrie-adult', icon: '⚕️', title: 'Psihiatrie', desc: 'Evaluare și tratament medicamentos' }
+        {key:'psihoterapie-adult',icon:'🧠',title:'Psihoterapie individuală',desc:'Ședințe de terapie pentru adulți'},
+        {key:'psihoterapie-cuplu',icon:'💑',title:'Psihoterapie de cuplu',desc:'Terapie pentru cupluri'},
+        {key:'psihiatrie-adult',icon:'⚕️',title:'Psihiatrie',desc:'Evaluare și tratament medicamentos'}
       ];
-
-      return `
-        <div class="section">
-          <div class="section-header">
-            <button class="back-btn" onclick="goBack()">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
-            </button>
-            <div class="section-title">Ce tip de serviciu cauți?</div>
-          </div>
-          
-          <div class="options-grid">
-            ${services.map(s => `
-              <div class="option-card" onclick="selectService('${s.key}')">
-                <div class="option-icon">${s.icon}</div>
-                <div class="option-content">
-                  <div class="option-title">${s.title}</div>
-                  <div class="option-desc">${s.desc}</div>
-                </div>
-              </div>
-            `).join('')}
-          </div>
-        </div>
-      `;
+      return `<div class="section"><div class="section-header"><button class="back-btn" onclick="goBack()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></button><div class="section-title">Ce tip de serviciu cauți?</div></div><div class="options-grid">${services.map(s=>`<div class="option-card" onclick="selectService('${s.key}')"><div class="option-icon">${s.icon}</div><div class="option-content"><div class="option-title">${s.title}</div><div class="option-desc">${s.desc}</div></div></div>`).join('')}</div></div>`;
     }
 
     function renderAgeGroup() {
-      let ageGroups = [];
-      let title = 'Selectează grupa de vârstă';
-      
-      if (state.patientType === 'adult') {
-        ageGroups = AGE_GROUPS_ADULT;
-      } else if (state.serviceType === 'logopedie') {
-        // Logopedie: doar 3-14 ani
-        ageGroups = AGE_GROUPS_LOGOPEDIE;
-        title = 'Logopedie este disponibilă pentru vârsta 3-14 ani';
-      } else if (state.serviceType === 'psihiatrie-copil') {
-        // Psihiatrie pediatrică: 0-18 ani
-        ageGroups = AGE_GROUPS_PSIHIATRIE_COPIL;
-        title = 'Psihiatrie pediatrică (0-18 ani)';
-      } else {
-        // Psihoterapie copii/adolescenti
-        ageGroups = AGE_GROUPS_CHILD;
-      }
-
-      const isSingleOption = ageGroups.length === 1;
-      
-      return `
-        <div class="section">
-          <div class="section-header">
-            <button class="back-btn" onclick="goBack()">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
-            </button>
-            <div class="section-title">${title}</div>
-          </div>
-          
-          ${isSingleOption ? `
-            <div class="options-grid">
-              ${ageGroups.map(ag => `
-                <div class="option-card" onclick="selectAgeGroup('${ag.key}', '${ag.label}', ${ag.min}, ${ag.max})">
-                  <div class="option-icon">🎂</div>
-                  <div class="option-content">
-                    <div class="option-title">${ag.label}</div>
-                    <div class="option-desc">Apasă pentru a continua</div>
-                  </div>
-                </div>
-              `).join('')}
-            </div>
-          ` : `
-            <div class="options-row">
-              ${ageGroups.map(ag => `
-                <div class="option-card-small" onclick="selectAgeGroup('${ag.key}', '${ag.label}', ${ag.min}, ${ag.max})">
-                  <div class="option-icon">🎂</div>
-                  <div class="option-title">${ag.label}</div>
-                </div>
-              `).join('')}
-            </div>
-          `}
-          
-          ${state.serviceType === 'logopedie' ? `
-            <div style="margin-top: 16px; padding: 12px; background: var(--warning-light); border-radius: 10px; font-size: 12px; color: var(--warning);">
-              ⚠️ Pentru vârste de 15+ ani, te rugăm să ne contactezi telefonic la <a href="tel:0217812259" style="color: inherit; font-weight: 600;">021.781.22.59</a>
-            </div>
-          ` : ''}
-        </div>
-      `;
+      let ageGroups, title = 'Selectează grupa de vârstă';
+      if (state.patientType === 'adult') ageGroups = AGE_GROUPS_ADULT;
+      else if (state.serviceType === 'logopedie') { ageGroups = AGE_GROUPS_LOGOPEDIE; title = 'Logopedie este disponibilă pentru vârsta 3-14 ani'; }
+      else if (state.serviceType === 'psihiatrie-copil') { ageGroups = AGE_GROUPS_PSIHIATRIE_COPIL; title = 'Psihiatrie pediatrică (0-18 ani)'; }
+      else ageGroups = AGE_GROUPS_CHILD;
+      const single = ageGroups.length === 1;
+      return `<div class="section"><div class="section-header"><button class="back-btn" onclick="goBack()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></button><div class="section-title">${title}</div></div>${single?`<div class="options-grid">${ageGroups.map(ag=>`<div class="option-card" onclick="selectAgeGroup('${ag.key}','${ag.label}',${ag.min},${ag.max})"><div class="option-icon">🎂</div><div class="option-content"><div class="option-title">${ag.label}</div><div class="option-desc">Apasă pentru a continua</div></div></div>`).join('')}</div>`:`<div class="options-row">${ageGroups.map(ag=>`<div class="option-card-small" onclick="selectAgeGroup('${ag.key}','${ag.label}',${ag.min},${ag.max})"><div class="option-icon">🎂</div><div class="option-title">${ag.label}</div></div>`).join('')}</div>`}${state.serviceType==='logopedie'?`<div style="margin-top:16px;padding:12px;background:var(--warning-light);border-radius:10px;font-size:12px;color:var(--warning);">⚠️ Pentru vârste de 15+ ani, te rugăm să ne contactezi telefonic la <a href="tel:0217812259" style="color:inherit;font-weight:600;">021.781.22.59</a></div>`:''}</div>`;
     }
 
     function renderFormat() {
-      return `
-        <div class="section">
-          <div class="section-header">
-            <button class="back-btn" onclick="goBack()">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
-            </button>
-            <div class="section-title">Cum preferi ședința?</div>
-          </div>
-          
-          <div class="options-row">
-            <div class="option-card-small" onclick="selectFormat('cabinet')">
-              <div class="option-icon">🏥</div>
-              <div class="option-title">La cabinet</div>
-            </div>
-            <div class="option-card-small" onclick="selectFormat('online')">
-              <div class="option-icon">💻</div>
-              <div class="option-title">Online</div>
-            </div>
-          </div>
-        </div>
-      `;
+      return `<div class="section"><div class="section-header"><button class="back-btn" onclick="goBack()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></button><div class="section-title">Cum preferi ședința?</div></div><div class="options-row"><div class="option-card-small" onclick="selectFormat('cabinet')"><div class="option-icon">🏥</div><div class="option-title">La cabinet</div></div><div class="option-card-small" onclick="selectFormat('online')"><div class="option-icon">💻</div><div class="option-title">Online</div></div></div></div>`;
     }
 
     function renderLocation() {
-      const onlyPrimaverii = state.serviceType === 'psihiatrie-copil';
-      
-      if (onlyPrimaverii) {
-        state.locationId = '2';
-        state.step = 'language';
-        setTimeout(render, 0);
-        return renderLoading('');
-      }
-
-      return `
-        <div class="section">
-          <div class="section-header">
-            <button class="back-btn" onclick="goBack()">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
-            </button>
-            <div class="section-title">La ce locație dorești?</div>
-          </div>
-          
-          <div class="options-grid">
-            <div class="option-card" onclick="selectLocation('1')">
-              <div class="option-icon">📍</div>
-              <div class="option-content">
-                <div class="option-title">Cotroceni</div>
-                <div class="option-desc">Strada Ana Davila 13</div>
-              </div>
-            </div>
-            <div class="option-card" onclick="selectLocation('2')">
-              <div class="option-icon">📍</div>
-              <div class="option-content">
-                <div class="option-title">Primăverii</div>
-                <div class="option-desc">Strada Pictor Ion Negulici 4</div>
-              </div>
-            </div>
-          </div>
-        </div>
-      `;
+      if (state.serviceType === 'psihiatrie-copil') { state.locationId = '2'; state.step = 'language'; setTimeout(render, 0); return renderLoading(''); }
+      return `<div class="section"><div class="section-header"><button class="back-btn" onclick="goBack()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></button><div class="section-title">La ce locație dorești?</div></div><div class="options-grid"><div class="option-card" onclick="selectLocation('1')"><div class="option-icon">📍</div><div class="option-content"><div class="option-title">Cotroceni</div><div class="option-desc">Strada Ana Davila 13</div></div></div><div class="option-card" onclick="selectLocation('2')"><div class="option-icon">📍</div><div class="option-content"><div class="option-title">Primăverii</div><div class="option-desc">Strada Pictor Ion Negulici 4</div></div></div></div></div>`;
     }
 
     function renderLanguage() {
-      // Get unique languages from all doctors that match our filters so far
-      const availableLanguages = ['Romana', 'Engleza']; // Most common, show by default
-      
-      return `
-        <div class="section">
-          <div class="section-header">
-            <button class="back-btn" onclick="goBack()">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
-            </button>
-            <div class="section-title">În ce limbă preferi ședința?</div>
-          </div>
-          
-          <div class="options-row">
-            <div class="option-card-small" onclick="selectLanguage('Romana')">
-              <div class="option-icon">🇷🇴</div>
-              <div class="option-title">Română</div>
-            </div>
-            <div class="option-card-small" onclick="selectLanguage('Engleza')">
-              <div class="option-icon">🇬🇧</div>
-              <div class="option-title">Engleză</div>
-            </div>
-          </div>
-        </div>
-      `;
+      return `<div class="section"><div class="section-header"><button class="back-btn" onclick="goBack()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></button><div class="section-title">În ce limbă preferi ședința?</div></div><div class="options-row"><div class="option-card-small" onclick="selectLanguage('Romana')"><div class="option-icon">🇷🇴</div><div class="option-title">Română</div></div><div class="option-card-small" onclick="selectLanguage('Engleza')"><div class="option-icon">🇬🇧</div><div class="option-title">Engleză</div></div></div></div>`;
     }
 
     function renderReason() {
       const reasons = getReasonsList();
-      
-      return `
-        <div class="section">
-          <div class="section-header">
-            <button class="back-btn" onclick="goBack()">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
-            </button>
-            <div>
-              <div class="section-title">Care este motivul programării?</div>
-            </div>
-          </div>
-          
-          <div class="reasons-grid">
-            ${reasons.map(r => `
-              <div class="reason-item ${state.selectedReason === r ? 'selected' : ''}" onclick="selectReason('${r.replace(/'/g, "\\'")}')">
-                <div class="reason-checkbox">${state.selectedReason === r ? '✓' : ''}</div>
-                <span class="reason-label">${r}</span>
-              </div>
-            `).join('')}
-            
-            <div class="reason-item ${state.selectedReason === 'other' ? 'selected' : ''}" onclick="selectReason('other')">
-              <div class="reason-checkbox">${state.selectedReason === 'other' ? '✓' : ''}</div>
-              <input type="text" 
-                     class="other-input" 
-                     placeholder="Altceva (specificați)..."
-                     value="${state.otherReason}"
-                     onfocus="selectReason('other')"
-                     oninput="state.otherReason = this.value">
-            </div>
-          </div>
-          
-          <button class="btn-primary" 
-                  onclick="afterGuidedReason()"
-                  ${!state.selectedReason || (state.selectedReason === 'other' && !state.otherReason.trim()) ? 'disabled' : ''}>
-            Continuă
-          </button>
-        </div>
-      `;
+      return `<div class="section"><div class="section-header"><button class="back-btn" onclick="goBack()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></button><div><div class="section-title">Care este motivul programării?</div></div></div><div class="reasons-grid">${reasons.map(r=>`<div class="reason-item ${state.selectedReason===r?'selected':''}" onclick="selectReason('${r.replace(/'/g,"\\'")}')"><div class="reason-checkbox">${state.selectedReason===r?'✓':''}</div><span class="reason-label">${r}</span></div>`).join('')}<div class="reason-item ${state.selectedReason==='other'?'selected':''}" onclick="selectReason('other')"><div class="reason-checkbox">${state.selectedReason==='other'?'✓':''}</div><input type="text" class="other-input" placeholder="Altceva (specificați)..." value="${state.otherReason}" onfocus="selectReason('other')" oninput="state.otherReason=this.value"></div></div><button class="btn-primary" onclick="afterGuidedReason()" ${!state.selectedReason||(state.selectedReason==='other'&&!state.otherReason.trim())?'disabled':''}>Continuă</button></div>`;
     }
 
     function renderDoctor() {
       filterDoctorsByService();
-      
-      return `
-        <div class="section">
-          <div class="section-header">
-            <button class="back-btn" onclick="goBack()">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
-            </button>
-            <div class="section-title">Alege specialistul</div>
-          </div>
-          
-          <div class="doctors-list">
-            ${state.filteredDoctors.length === 0 ? `
-              <div class="empty-state">
-                <div class="icon">😔</div>
-                <div>Nu am găsit specialiști disponibili pentru criteriile selectate.</div>
-              </div>
-            ` : state.filteredDoctors.map(doc => renderDoctorCard(doc, 'selectDoctorFromGuided')).join('')}
-          </div>
-        </div>
-      `;
+      return `<div class="section"><div class="section-header"><button class="back-btn" onclick="goBack()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></button><div class="section-title">Alege specialistul</div></div><div class="doctors-list">${state.filteredDoctors.length===0?`<div class="empty-state"><div class="icon">😔</div><div>Nu am găsit specialiști disponibili pentru criteriile selectate.</div></div>`:state.filteredDoctors.map(doc=>renderDoctorCard(doc,'selectDoctorFromGuided')).join('')}</div></div>`;
     }
 
     function renderDoctorCard(doc, onclickFn) {
-      const initials = getInitials(doc.Name);
-      const languages = (doc.Languages || []).join(', ');
-      
-      return `
-        <div class="doctor-card" onclick="${onclickFn}(${doc.DoctorId})">
-          <div class="doctor-avatar">
-            ${doc.Photo ? `<img src="${doc.Photo}" alt="${doc.Name}">` : initials}
-          </div>
-          <div class="doctor-info">
-            <div class="doctor-name">${doc.Name}</div>
-            <div class="doctor-specialty">${doc.ShortBio || ''}</div>
-            <div class="doctor-meta">
-              <span class="doctor-slots">${doc.slotsCount} intervale</span>
-              ${languages ? `<span class="doctor-languages">• ${languages}</span>` : ''}
-            </div>
-          </div>
-        </div>
-      `;
+      const langs = (doc.Languages||[]).join(', ');
+      return `<div class="doctor-card" onclick="${onclickFn}(${doc.DoctorId})"><div class="doctor-avatar">${doc.Photo?`<img src="${doc.Photo}" alt="${doc.Name}">`:getInitials(doc.Name)}</div><div class="doctor-info"><div class="doctor-name">${doc.Name}</div><div class="doctor-specialty">${doc.ShortBio||''}</div><div class="doctor-meta"><span class="doctor-slots">${doc.slotsCount} intervale</span>${langs?`<span class="doctor-languages">• ${langs}</span>`:''}</div></div></div>`;
     }
 
     function renderCalendar() {
       const doc = state.selectedDoctor;
-      const locationForSlots = state.sessionFormat === 'online' ? null : state.locationId;
-      const availableDates = getDoctorAvailableDates(doc.DoctorId, locationForSlots);
-
-      const year = state.currentMonth.getFullYear();
-      const month = state.currentMonth.getMonth();
-      // Convert Sunday=0 to Monday-first: Monday=0, Tuesday=1, ..., Sunday=6
-      const firstDayJS = new Date(year, month, 1).getDay();
-      const firstDay = (firstDayJS + 6) % 7; // Convert to Monday-first
+      const locForSlots = state.sessionFormat === 'online' ? null : state.locationId;
+      const availDates = getDoctorAvailableDates(doc.DoctorId, locForSlots);
+      const year = state.currentMonth.getFullYear(), month = state.currentMonth.getMonth();
+      const firstDay = (new Date(year, month, 1).getDay() + 6) % 7;
       const daysInMonth = new Date(year, month + 1, 0).getDate();
-      const today = new Date();
-      today.setHours(0, 0, 0, 0);
-
+      const today = new Date(); today.setHours(0,0,0,0);
       const canGoPrev = month > today.getMonth() || year > today.getFullYear();
-
       let daysHtml = '';
       for (let i = 0; i < firstDay; i++) daysHtml += '<div class="day empty"></div>';
-
       for (let day = 1; day <= daysInMonth; day++) {
-        const date = new Date(year, month, day);
-        const dateStr = formatDateISO(date);
-        const isPast = date < today;
-        const isToday = date.getTime() === today.getTime();
-        const isAvailable = availableDates.has(dateStr);
-        const isSelected = state.selectedDate === dateStr;
-
-        let classes = ['day'];
-        if (isPast) classes.push('past');
-        else if (isAvailable) classes.push('available');
-        else classes.push('unavailable');
-        if (isToday) classes.push('today');
-        if (isSelected) classes.push('selected');
-
-        const onclick = !isPast && isAvailable ? `onclick="selectDate('${dateStr}')"` : '';
-        daysHtml += `<div class="${classes.join(' ')}" ${onclick}>${day}</div>`;
+        const date = new Date(year, month, day), dateStr = formatDateISO(date);
+        const isPast = date < today, isToday = date.getTime() === today.getTime();
+        const isAvail = availDates.has(dateStr), isSel = state.selectedDate === dateStr;
+        let cls = 'day'; if (isPast) cls += ' past'; else if (isAvail) cls += ' available'; else cls += ' unavailable';
+        if (isToday) cls += ' today'; if (isSel) cls += ' selected';
+        daysHtml += `<div class="${cls}" ${!isPast&&isAvail?`onclick="selectDate('${dateStr}')"`:''} >${day}</div>`;
       }
-
-      return `
-        <div class="section">
-          <div class="section-header">
-            <button class="back-btn" onclick="goBack()">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
-            </button>
-            <div class="section-title">Alege data</div>
-          </div>
-          
-          <div class="selected-badge">
-            ${doc.Photo ? `<img src="${doc.Photo}" alt="${doc.Name}">` : `<div class="initials">${getInitials(doc.Name)}</div>`}
-            <div class="info">
-              <div class="name">${doc.Name}</div>
-              <div class="detail">${doc.ShortBio || ''}</div>
-            </div>
-          </div>
-          
-          <div class="calendar-container">
-            <div class="calendar-header">
-              <span class="month-title">${MONTHS_RO[month]} ${year}</span>
-              <div class="calendar-nav">
-                <button class="nav-btn" onclick="prevMonth()" ${!canGoPrev ? 'disabled' : ''}>
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
-                </button>
-                <button class="nav-btn" onclick="nextMonth()">
-                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg>
-                </button>
-              </div>
-            </div>
-            <div class="weekdays">${DAYS_RO.map(d => `<div class="weekday">${d}</div>`).join('')}</div>
-            <div class="days-grid">${daysHtml}</div>
-          </div>
-        </div>
-      `;
+      return `<div class="section"><div class="section-header"><button class="back-btn" onclick="goBack()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></button><div class="section-title">Alege data</div></div><div class="selected-badge">${doc.Photo?`<img src="${doc.Photo}" alt="${doc.Name}">`:`<div class="initials">${getInitials(doc.Name)}</div>`}<div class="info"><div class="name">${doc.Name}</div><div class="detail">${doc.ShortBio||''}</div></div></div><div class="calendar-container"><div class="calendar-header"><span class="month-title">${MONTHS_RO[month]} ${year}</span><div class="calendar-nav"><button class="nav-btn" onclick="prevMonth()" ${!canGoPrev?'disabled':''}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></button><button class="nav-btn" onclick="nextMonth()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></button></div></div><div class="weekdays">${DAYS_RO.map(d=>`<div class="weekday">${d}</div>`).join('')}</div><div class="days-grid">${daysHtml}</div></div></div>`;
     }
 
     function renderTime() {
       const doc = state.selectedDoctor;
-      const locationForSlots = state.sessionFormat === 'online' ? null : state.locationId;
-      const timeSlots = getTimeSlotsForDoctorDate(doc.DoctorId, state.selectedDate, locationForSlots);
-      
+      const locForSlots = state.sessionFormat === 'online' ? null : state.locationId;
+      const timeSlots = getTimeSlotsForDoctorDate(doc.DoctorId, state.selectedDate, locForSlots);
       const date = parseDateString(state.selectedDate);
       const dateDisplay = `${DAY_NAMES[date.getDay()]}, ${date.getDate()} ${MONTHS_RO[date.getMonth()]}`;
-
-      return `
-        <div class="section">
-          <div class="section-header">
-            <button class="back-btn" onclick="goBackFromTime()">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
-            </button>
-            <div class="section-title">Alege ora</div>
-          </div>
-          
-          <div class="selected-badge">
-            <div class="info">
-              <div class="name">${doc.Name}</div>
-              <div class="detail">📅 ${dateDisplay}</div>
-            </div>
-          </div>
-          
-          <div class="time-grid">
-            ${timeSlots.map(slot => `
-              <div class="time-slot ${state.selectedTime?.time === slot.time ? 'selected' : ''}" 
-                   onclick="selectTime('${slot.time}', '${slot.startDateTime}')">
-                ${slot.time}
-              </div>
-            `).join('')}
-          </div>
-          
-          ${state.selectedTime ? `
-            <button class="btn-primary" style="margin-top: 16px;" onclick="goToStep('patient-data')">Continuă</button>
-          ` : ''}
-        </div>
-      `;
+      return `<div class="section"><div class="section-header"><button class="back-btn" onclick="goBackFromTime()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></button><div class="section-title">Alege ora</div></div><div class="selected-badge"><div class="info"><div class="name">${doc.Name}</div><div class="detail">📅 ${dateDisplay}</div></div></div><div class="time-grid">${timeSlots.map(slot=>`<div class="time-slot ${state.selectedTime?.time===slot.time?'selected':''}" onclick="selectTime('${slot.time}','${slot.startDateTime}')">${slot.time}</div>`).join('')}</div>${state.selectedTime?`<button class="btn-primary" style="margin-top:16px;" onclick="goToStep('patient-data')">Continuă</button>`:''}</div>`;
     }
 
     function renderPatientData() {
       const isChild = state.patientType === 'child';
       const nameLabel = isChild ? 'Numele copilului' : 'Nume complet';
       const nameHint = isChild ? '<div class="form-hint">Te rog să introduci numele copilului</div>' : '';
-      
-      return `
-        <div class="section">
-          <div class="section-header">
-            <button class="back-btn" onclick="goBack()">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
-            </button>
-            <div class="section-title">Datele tale</div>
-          </div>
-          
-          <div class="form-section">
-            <div class="form-group">
-              <label class="form-label">${nameLabel} <span class="required">*</span></label>
-              <input type="text" 
-                     id="patient-name"
-                     class="form-input" 
-                     placeholder="${isChild ? 'ex: Maria Popescu' : 'ex: Ion Popescu'}"
-                     value="${state.patientName}"
-                     oninput="updatePatientButton()">
-              ${nameHint}
-            </div>
-            
-            <div class="form-group">
-              <label class="form-label">Număr de telefon <span class="required">*</span></label>
-              <input type="tel" 
-                     id="patient-phone"
-                     class="form-input" 
-                     placeholder="ex: 0751234567"
-                     value="${state.patientPhone}"
-                     oninput="updatePatientButton(); handlePhoneInput(this.value)">
-              <div class="form-hint">Vei primi SMS de confirmare la acest număr</div>
-              <div id="phone-status"></div>
-            </div>
-            
-            <div class="form-group">
-              <label class="form-label">Email <span class="optional">(opțional)</span></label>
-              <input type="email" 
-                     id="patient-email"
-                     class="form-input" 
-                     placeholder="ex: ion@email.com"
-                     value="${state.patientEmail}">
-            </div>
-            
-            <button class="btn-primary" id="patient-btn" onclick="goToConfirm()" disabled>
-              Vezi rezumatul
-            </button>
-          </div>
-        </div>
-      `;
+      return `<div class="section"><div class="section-header"><button class="back-btn" onclick="goBack()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></button><div class="section-title">Datele tale</div></div><div class="form-section"><div class="form-group"><label class="form-label">${nameLabel} <span class="required">*</span></label><input type="text" id="patient-name" class="form-input" placeholder="${isChild?'ex: Maria Popescu':'ex: Ion Popescu'}" value="${state.patientName}" oninput="updatePatientButton()">${nameHint}</div><div class="form-group"><label class="form-label">Număr de telefon <span class="required">*</span></label><input type="tel" id="patient-phone" class="form-input" placeholder="ex: 0751234567" value="${state.patientPhone}" oninput="updatePatientButton();handlePhoneInput(this.value)"><div class="form-hint">Vei primi SMS de confirmare la acest număr</div><div id="phone-status"></div></div><div class="form-group"><label class="form-label">Email <span class="optional">(opțional)</span></label><input type="email" id="patient-email" class="form-input" placeholder="ex: ion@email.com" value="${state.patientEmail}"></div><button class="btn-primary" id="patient-btn" onclick="goToConfirm()" disabled>Vezi rezumatul</button></div></div>`;
     }
 
     function updatePatientButton() {
       const name = document.getElementById('patient-name')?.value?.trim();
       const phone = document.getElementById('patient-phone')?.value?.trim();
       const btn = document.getElementById('patient-btn');
-      
-      if (btn) {
-        btn.disabled = !name || phone?.length < 10 || !state.phoneCanBook;
-      }
+      if (btn) btn.disabled = !name || phone?.length < 10 || !state.phoneCanBook;
     }
 
     function updatePhoneStatus() {
-      const statusDiv = document.getElementById('phone-status');
-      if (!statusDiv) return;
-      
-      if (state.phoneCheckLoading) {
-        statusDiv.innerHTML = `<div class="phone-status checking">⏳ Se verifică disponibilitatea...</div>`;
-      } else if (state.phoneChecked && !state.phoneCanBook) {
-        statusDiv.innerHTML = `<div class="phone-status error">❌ Aveți deja o programare activă. Contactați-ne telefonic pentru o nouă programare.</div>`;
-      } else if (state.phoneChecked && state.phoneCanBook && state.patientPhone.length >= 10) {
-        statusDiv.innerHTML = `<div class="phone-status success">✓ Număr valid</div>`;
-      } else {
-        statusDiv.innerHTML = '';
-      }
-      
+      const el = document.getElementById('phone-status'); if (!el) return;
+      if (state.phoneCheckLoading) el.innerHTML = `<div class="phone-status checking">⏳ Se verifică disponibilitatea...</div>`;
+      else if (state.phoneChecked && !state.phoneCanBook) el.innerHTML = `<div class="phone-status error">❌ Aveți deja o programare activă. Contactați-ne telefonic pentru o nouă programare.</div>`;
+      else if (state.phoneChecked && state.phoneCanBook && state.patientPhone.length >= 10) el.innerHTML = `<div class="phone-status success">✓ Număr valid</div>`;
+      else el.innerHTML = '';
       updatePatientButton();
     }
 
     function goToConfirm() {
-      // Read values from inputs
       state.patientName = document.getElementById('patient-name')?.value || '';
       state.patientPhone = document.getElementById('patient-phone')?.value || '';
       state.patientEmail = document.getElementById('patient-email')?.value || '';
-      
-      if (!state.patientName.trim() || state.patientPhone.trim().length < 10) {
-        return;
-      }
-      
-      state.step = 'confirm';
-      render();
+      if (!state.patientName.trim() || state.patientPhone.trim().length < 10) return;
+      state.step = 'confirm'; render();
     }
 
     function getServiceNotes() {
       const notes = [];
-      
-      // Psihiatrie pediatrică
-      if (state.serviceType === 'psihiatrie-copil') {
-        notes.push({
-          title: '📋 Documente necesare',
-          content: `
-            <ul style="margin: 8px 0; padding-left: 20px; font-size: 11px;">
-              <li>Copie certificat naștere și CI/BI copil</li>
-              <li>Copii CI/BI ambii părinți</li>
-              <li>Dosar medical (dacă există)</li>
-              <li>Dacă un părinte lipsește: acord semnat trimis pe mail înainte</li>
-            </ul>
-            <div style="font-size: 11px; margin-top: 8px;">📧 Trimite documentele la <strong>office@themind.ro</strong></div>
-          `
-        });
-      }
-      
-      // Psihoterapie copii/adolescenți
-      if (state.serviceType === 'psihoterapie-copil' || state.serviceType === 'psihoterapie-adolescent') {
-        notes.push({
-          title: '👨‍👩‍👧 Prima ședință',
-          content: `
-            <div style="font-size: 11px;">
-              La prima ședință vor veni <strong>doar părinții, fără copil</strong>.<br><br>
-              Dacă ambii părinți nu pot fi prezenți, avem nevoie de acordul părintelui absent 
-              (inclusiv în cazul părinților divorțați/separați). Anunță-ne în prealabil pentru a trimite formularul.
-            </div>
-          `
-        });
-      }
-      
-      // Logopedie
-      if (state.serviceType === 'logopedie') {
-        notes.push({
-          title: '👨‍👩‍👧 Prima ședință',
-          content: `
-            <div style="font-size: 11px;">
-              La prima ședință părinții vor însoți copilul pentru a semna acordul informat.<br><br>
-              Dacă ambii părinți nu pot fi prezenți, avem nevoie de acordul părintelui absent. 
-              Anunță-ne în prealabil pentru a trimite formularul.
-            </div>
-          `
-        });
-      }
-      
-      // Psihiatrie adulți
-      if (state.serviceType === 'psihiatrie-adult') {
-        notes.push({
-          title: '📋 De adus la consultație',
-          content: `
-            <div style="font-size: 11px;">
-              • Carte de identitate / Buletin<br>
-              • Documente medicale de la alți psihiatri (dacă există)
-            </div>
-          `
-        });
-      }
-      
+      if (state.serviceType === 'psihiatrie-copil') notes.push({title:'📋 Documente necesare',content:`<ul style="margin:8px 0;padding-left:20px;font-size:11px;"><li>Copie certificat naștere și CI/BI copil</li><li>Copii CI/BI ambii părinți</li><li>Dosar medical (dacă există)</li><li>Dacă un părinte lipsește: acord semnat trimis pe mail înainte</li></ul><div style="font-size:11px;margin-top:8px;">📧 Trimite documentele la <strong>office@themind.ro</strong></div>`});
+      if (state.serviceType === 'psihoterapie-copil' || state.serviceType === 'psihoterapie-adolescent') notes.push({title:'👨‍👩‍👧 Prima ședință',content:`<div style="font-size:11px;">La prima ședință vor veni <strong>doar părinții, fără copil</strong>.<br><br>Dacă ambii părinți nu pot fi prezenți, avem nevoie de acordul părintelui absent (inclusiv în cazul părinților divorțați/separați). Anunță-ne în prealabil pentru a trimite formularul.</div>`});
+      if (state.serviceType === 'logopedie') notes.push({title:'👨‍👩‍👧 Prima ședință',content:`<div style="font-size:11px;">La prima ședință părinții vor însoți copilul pentru a semna acordul informat.<br><br>Dacă ambii părinți nu pot fi prezenți, avem nevoie de acordul părintelui absent. Anunță-ne în prealabil pentru a trimite formularul.</div>`});
+      if (state.serviceType === 'psihiatrie-adult') notes.push({title:'📋 De adus la consultație',content:`<div style="font-size:11px;">• Carte de identitate / Buletin<br>• Documente medicale de la alți psihiatri (dacă există)</div>`});
       return notes;
     }
 
     function renderConfirm() {
-      const doc = state.selectedDoctor;
-      const date = parseDateString(state.selectedDate);
+      const doc = state.selectedDoctor, date = parseDateString(state.selectedDate);
       const dateDisplay = `${DAY_NAMES[date.getDay()]}, ${date.getDate()} ${MONTHS_RO[date.getMonth()]} ${date.getFullYear()}`;
       const serviceLabel = SERVICE_TYPES[state.serviceType]?.label || '';
       const locationName = state.sessionFormat === 'online' ? 'Online' : LOCATIONS[state.locationId]?.name;
       const price = calculatePrice(state.serviceType, doc.DoctorType, state.language);
       const reason = state.selectedReason === 'other' ? state.otherReason : state.selectedReason;
-      const serviceNotes = getServiceNotes();
-
-      return `
-        <div class="section">
-          <div class="section-header">
-            <button class="back-btn" onclick="goBack()">
-              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg>
-            </button>
-            <div class="section-title">Confirmare programare</div>
-          </div>
-          
-          <div class="summary-card">
-            <div class="summary-row">
-              <span class="summary-icon">👤</span>
-              <div>
-                <div class="summary-label">Specialist</div>
-                <div class="summary-value">${doc.Name}</div>
-              </div>
-            </div>
-            
-            ${serviceLabel ? `
-            <div class="summary-row">
-              <span class="summary-icon">🩺</span>
-              <div>
-                <div class="summary-label">Serviciu</div>
-                <div class="summary-value">${serviceLabel}</div>
-              </div>
-            </div>
-            ` : ''}
-            
-            ${reason ? `
-            <div class="summary-row">
-              <span class="summary-icon">📝</span>
-              <div>
-                <div class="summary-label">Motiv</div>
-                <div class="summary-value">${reason}</div>
-              </div>
-            </div>
-            ` : ''}
-            
-            <div class="summary-row">
-              <span class="summary-icon">📅</span>
-              <div>
-                <div class="summary-label">Data și ora</div>
-                <div class="summary-value">${dateDisplay}, ora ${state.selectedTime.time}</div>
-              </div>
-            </div>
-            
-            <div class="summary-row">
-              <span class="summary-icon">📍</span>
-              <div>
-                <div class="summary-label">Locație</div>
-                <div class="summary-value">${locationName || ''}</div>
-              </div>
-            </div>
-            
-            <div class="summary-row">
-              <span class="summary-icon">🗣️</span>
-              <div>
-                <div class="summary-label">Limba</div>
-                <div class="summary-value">${state.language || ''}</div>
-              </div>
-            </div>
-            
-            <div class="summary-row">
-              <span class="summary-icon">📱</span>
-              <div>
-                <div class="summary-label">Pacient</div>
-                <div class="summary-value">${state.patientName}</div>
-                <div style="font-size: 11px; color: var(--text-light);">${state.patientPhone}</div>
-              </div>
-            </div>
-            
-            <div class="summary-price">
-              <span class="label">Total de plată</span>
-              <span class="amount">${price} RON</span>
-            </div>
-          </div>
-          
-          ${serviceNotes.length > 0 ? `
-            ${serviceNotes.map(note => `
-              <div style="margin-bottom: 12px; padding: 12px; background: var(--primary-light); border-radius: 10px; border-left: 3px solid var(--primary);">
-                <div style="font-weight: 600; font-size: 12px; color: var(--primary); margin-bottom: 6px;">${note.title}</div>
-                ${note.content}
-              </div>
-            `).join('')}
-          ` : ''}
-          
-          <div style="margin-bottom: 16px; padding: 12px; background: var(--warning-light); border-radius: 10px; font-size: 11px; color: var(--warning);">
-            <strong>⚠️ Politica de anulare:</strong><br>
-            Dacă ai nevoie să anulezi, te rugăm să ne anunți cu minim 48 de ore înainte, altfel ședința va fi tarifată. 
-            Prin programare rezervi timpul unui specialist, o resursă finită și prețioasă.
-          </div>
-          
-          <button class="btn-primary" onclick="submitBooking()">Confirmă programarea</button>
-          <button class="btn-secondary" onclick="goBack()">Modifică datele</button>
-        </div>
-      `;
+      const notes = getServiceNotes();
+      return `<div class="section"><div class="section-header"><button class="back-btn" onclick="goBack()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></button><div class="section-title">Confirmare programare</div></div><div class="summary-card"><div class="summary-row"><span class="summary-icon">👤</span><div><div class="summary-label">Specialist</div><div class="summary-value">${doc.Name}</div></div></div>${serviceLabel?`<div class="summary-row"><span class="summary-icon">🩺</span><div><div class="summary-label">Serviciu</div><div class="summary-value">${serviceLabel}</div></div></div>`:''}${reason?`<div class="summary-row"><span class="summary-icon">📝</span><div><div class="summary-label">Motiv</div><div class="summary-value">${reason}</div></div></div>`:''}<div class="summary-row"><span class="summary-icon">📅</span><div><div class="summary-label">Data și ora</div><div class="summary-value">${dateDisplay}, ora ${state.selectedTime.time}</div></div></div><div class="summary-row"><span class="summary-icon">📍</span><div><div class="summary-label">Locație</div><div class="summary-value">${locationName||''}</div></div></div><div class="summary-row"><span class="summary-icon">🗣️</span><div><div class="summary-label">Limba</div><div class="summary-value">${state.language||''}</div></div></div><div class="summary-row"><span class="summary-icon">📱</span><div><div class="summary-label">Pacient</div><div class="summary-value">${state.patientName}</div><div style="font-size:11px;color:var(--text-light);">${state.patientPhone}</div></div></div><div class="summary-price"><span class="label">Total de plată</span><span class="amount">${price} RON</span></div></div>${notes.length>0?notes.map(n=>`<div style="margin-bottom:12px;padding:12px;background:var(--primary-light);border-radius:10px;border-left:3px solid var(--primary);"><div style="font-weight:600;font-size:12px;color:var(--primary);margin-bottom:6px;">${n.title}</div>${n.content}</div>`).join(''):''}<div style="margin-bottom:16px;padding:12px;background:var(--warning-light);border-radius:10px;font-size:11px;color:var(--warning);"><strong>⚠️ Politica de anulare:</strong><br>Dacă ai nevoie să anulezi, te rugăm să ne anunți cu minim 48 de ore înainte, altfel ședința va fi tarifată. Prin programare rezervi timpul unui specialist, o resursă finită și prețioasă.</div><button class="btn-primary" onclick="submitBooking()">Confirmă programarea</button><button class="btn-secondary" onclick="goBack()">Modifică datele</button></div>`;
     }
 
     function renderSuccess() {
-      const doc = state.selectedDoctor;
-      const date = parseDateString(state.selectedDate);
+      const doc = state.selectedDoctor, date = parseDateString(state.selectedDate);
       const dateDisplay = `${DAY_NAMES[date.getDay()]}, ${date.getDate()} ${MONTHS_RO[date.getMonth()]}`;
-      
-      // Full protocol for psihiatrie pediatrica
-      const isPsihiatriePediatrica = state.serviceType === 'psihiatrie-copil';
-
-      return `
-        <div class="success-container" style="text-align: left; padding: 20px;">
-          <div style="text-align: center;">
-            <div class="success-icon">✅</div>
-            <div class="success-title">Programare confirmată!</div>
-            <div class="success-message" style="margin-bottom: 20px;">
-              Te-ai programat la <strong>${doc.Name}</strong>, <strong>${dateDisplay}</strong> la ora <strong>${state.selectedTime.time}</strong>.<br><br>
-              Vei primi un SMS de confirmare la numărul <strong>${state.patientPhone}</strong>.<br><br>
-              <span style="color: var(--primary); font-style: italic;">Îți mulțumim că ai ales The Mind. Ai făcut un pas important!</span>
-            </div>
-          </div>
-          
-          ${isPsihiatriePediatrica ? `
-            <div style="background: var(--primary-light); border-radius: 12px; padding: 16px; margin-bottom: 16px; border-left: 4px solid var(--primary);">
-              <div style="font-weight: 700; font-size: 14px; color: var(--primary); margin-bottom: 12px;">📋 Protocol Psihiatrie Pediatrică</div>
-              
-              <div style="font-size: 12px; margin-bottom: 12px;">
-                <strong>1. Documente necesare:</strong>
-                <ul style="margin: 6px 0; padding-left: 18px;">
-                  <li>Copie certificat naștere și CI/BI copil</li>
-                  <li>Copii CI/BI ambii părinți</li>
-                  <li>Dosar medical / acte medicale (dacă există)</li>
-                  <li>Părinți divorțați/separați: hotărâre judecătorească</li>
-                  <li>Părinte decedat: copie certificat deces</li>
-                  <li>Părinte absent: acord semnat, trimis pe mail înainte</li>
-                </ul>
-              </div>
-              
-              <div style="font-size: 12px; margin-bottom: 12px;">
-                <strong>2. Trimitere documente:</strong><br>
-                Trimite documentele pe <strong>office@themind.ro</strong> înainte de programare.
-              </div>
-              
-              <div style="font-size: 12px; margin-bottom: 12px;">
-                <strong>3. Tipul ședințelor:</strong><br>
-                • Evaluarea inițială se realizează doar la clinică<br>
-                • Ședințele ulterioare pot fi online (cu acordul medicului)
-              </div>
-              
-              <div style="font-size: 12px; background: var(--accent-light); padding: 10px; border-radius: 8px;">
-                <strong>⚠️ Important:</strong> Programarea se face întotdeauna pe numele copilului.
-              </div>
-            </div>
-          ` : ''}
-          
-          <div style="text-align: center;">
-            <button class="btn-primary" onclick="resetBooking()">Programare nouă</button>
-          </div>
-        </div>
-      `;
+      const isPP = state.serviceType === 'psihiatrie-copil';
+      return `<div class="success-container" style="text-align:left;padding:20px;"><div style="text-align:center;"><div class="success-icon">✅</div><div class="success-title">Programare confirmată!</div><div class="success-message" style="margin-bottom:20px;">Te-ai programat la <strong>${doc.Name}</strong>, <strong>${dateDisplay}</strong> la ora <strong>${state.selectedTime.time}</strong>.<br><br>Vei primi un SMS de confirmare la numărul <strong>${state.patientPhone}</strong>.<br><br><span style="color:var(--primary);font-style:italic;">Îți mulțumim că ai ales The Mind. Ai făcut un pas important!</span></div></div>${isPP?`<div style="background:var(--primary-light);border-radius:12px;padding:16px;margin-bottom:16px;border-left:4px solid var(--primary);"><div style="font-weight:700;font-size:14px;color:var(--primary);margin-bottom:12px;">📋 Protocol Psihiatrie Pediatrică</div><div style="font-size:12px;margin-bottom:12px;"><strong>1. Documente necesare:</strong><ul style="margin:6px 0;padding-left:18px;"><li>Copie certificat naștere și CI/BI copil</li><li>Copii CI/BI ambii părinți</li><li>Dosar medical / acte medicale (dacă există)</li><li>Părinți divorțați/separați: hotărâre judecătorească</li><li>Părinte decedat: copie certificat deces</li><li>Părinte absent: acord semnat, trimis pe mail înainte</li></ul></div><div style="font-size:12px;margin-bottom:12px;"><strong>2. Trimitere documente:</strong><br>Trimite documentele pe <strong>office@themind.ro</strong> înainte de programare.</div><div style="font-size:12px;margin-bottom:12px;"><strong>3. Tipul ședințelor:</strong><br>• Evaluarea inițială se realizează doar la clinică<br>• Ședințele ulterioare pot fi online (cu acordul medicului)</div><div style="font-size:12px;background:var(--accent-light);padding:10px;border-radius:8px;"><strong>⚠️ Important:</strong> Programarea se face întotdeauna pe numele copilului.</div></div>`:''}<div style="text-align:center;"><button class="btn-primary" onclick="resetBooking()">Programare nouă</button></div></div>`;
     }
 
     function renderError() {
-      return `
-        <div class="error-container">
-          <div class="error-icon">❌</div>
-          <div class="error-title">A apărut o eroare</div>
-          <div class="error-message">${state.errorMessage || 'Nu am putut finaliza programarea. Te rugăm contactează-ne telefonic la 021.781.22.59'}</div>
-          <button class="btn-primary" onclick="resetBooking()">Începe de la capăt</button>
-          <a href="tel:0217812259" class="btn-secondary" style="display: block; text-align: center; text-decoration: none;">📞 Sună: 021.781.22.59</a>
-        </div>
-      `;
+      return `<div class="error-container"><div class="error-icon">❌</div><div class="error-title">A apărut o eroare</div><div class="error-message">${state.errorMessage||'Nu am putut finaliza programarea. Te rugăm contactează-ne telefonic la 021.781.22.59'}</div><button class="btn-primary" onclick="resetBooking()">Începe de la capăt</button><a href="tel:0217812259" class="btn-secondary" style="display:block;text-align:center;text-decoration:none;">📞 Sună: 021.781.22.59</a></div>`;
     }
-
-    // =====================================================
-    // EVENT HANDLERS
-    // =====================================================
-    function startSearchFlow() {
-      state.flowType = 'search';
-      state.step = 'search';
-      searchDoctors('');
-      render();
-    }
-
-    function startGuidedFlow() {
-      state.flowType = 'guided';
-      state.step = 'patient-type';
-      render();
-    }
-
-    function handleSearchInput(value) {
-      state.searchQuery = value;
-      searchDoctors(value);
-      render();
-    }
+    function startSearchFlow() { state.flowType = 'search'; state.step = 'search'; searchDoctors(''); render(); }
+    function startGuidedFlow() { state.flowType = 'guided'; state.step = 'patient-type'; render(); }
+    function handleSearchInput(value) { state.searchQuery = value; searchDoctors(value); render(); }
 
     function selectDoctorFromSearch(doctorId) {
       state.selectedDoctor = state.allDoctors.find(d => d.DoctorId === doctorId);
-      
-      // Determine service type from doctor specialty
       const specialty = (state.selectedDoctor.SpecialtyType || [])[0] || '';
       const specLower = specialty.toLowerCase();
-      if (specLower.includes('psihiatrie')) {
-        state.serviceType = 'psihiatrie-adult';
-        state.patientType = 'adult';
-      } else if (specLower.includes('logoped')) {
-        state.serviceType = 'logopedie';
-        state.patientType = 'child';
-      } else {
-        state.serviceType = 'psihoterapie-adult';
-        state.patientType = 'adult';
-      }
-      
-      // Skip reason - go directly to format/location
+      if (specLower.includes('psihiatrie')) { state.serviceType = 'psihiatrie-adult'; state.patientType = 'adult'; }
+      else if (specLower.includes('logoped')) { state.serviceType = 'logopedie'; state.patientType = 'child'; }
+      else { state.serviceType = 'psihoterapie-adult'; state.patientType = 'adult'; }
       const canOnline = (state.selectedDoctor.SpecialtyType || []).some(s => s.toLowerCase().includes('psihoterapie'));
-      
-      if (canOnline) {
-        state.step = 'search-format';
-      } else {
-        state.sessionFormat = 'cabinet';
-        state.step = 'search-location';
-      }
+      if (canOnline) state.step = 'search-format';
+      else { state.sessionFormat = 'cabinet'; state.step = 'search-location'; }
       render();
     }
 
-    function selectReason(reason) {
-      state.selectedReason = reason;
-      render();
-    }
+    function selectReason(reason) { state.selectedReason = reason; render(); }
 
     function afterSearchReason() {
-      // Check if doctor can do online
-      const specialties = state.selectedDoctor.SpecialtyType || [];
-      const canOnline = specialties.some(s => s.toLowerCase().includes('psihoterapie'));
-      
-      if (canOnline) {
-        state.step = 'search-format';
-      } else {
-        state.sessionFormat = 'cabinet';
-        state.step = 'search-location';
-      }
+      const canOnline = (state.selectedDoctor.SpecialtyType || []).some(s => s.toLowerCase().includes('psihoterapie'));
+      if (canOnline) state.step = 'search-format';
+      else { state.sessionFormat = 'cabinet'; state.step = 'search-location'; }
       render();
     }
 
-    function afterGuidedReason() {
-      state.step = 'doctor';
-      render();
-    }
+    function afterGuidedReason() { state.step = 'doctor'; render(); }
 
     function selectSearchFormat(format) {
       state.sessionFormat = format;
-      if (format === 'online') {
-        state.step = 'search-language';
-      } else {
-        state.step = 'search-location';
-      }
+      state.step = format === 'online' ? 'search-language' : 'search-location';
       render();
     }
 
@@ -2710,121 +710,30 @@
       return locIds.map(id => ({ id, ...LOCATIONS[id] })).filter(l => l.name);
     }
 
-    function getDoctorLanguages() {
-      return state.selectedDoctor.Languages || ['Romana'];
-    }
-
-    function selectSearchLocation(locationId) {
-      state.locationId = locationId;
-      state.step = 'search-language';
-      render();
-    }
-
-    function selectSearchLanguage(language) {
-      state.language = language;
-      state.step = 'calendar';
-      render();
-    }
-
-    function selectPatientType(type) {
-      state.patientType = type;
-      state.step = 'service';
-      render();
-    }
-
-    function selectService(service) {
-      state.serviceType = service;
-      // ALL services go to age-group selection
-      state.step = 'age-group';
-      render();
-    }
+    function getDoctorLanguages() { return state.selectedDoctor.Languages || ['Romana']; }
+    function selectSearchLocation(locationId) { state.locationId = locationId; state.step = 'search-language'; render(); }
+    function selectSearchLanguage(language) { state.language = language; state.step = 'calendar'; render(); }
+    function selectPatientType(type) { state.patientType = type; state.step = 'service'; render(); }
+    function selectService(service) { state.serviceType = service; state.step = 'age-group'; render(); }
 
     function selectAgeGroup(key, label, min, max) {
       state.selectedAgeGroup = { key, label, min, max };
-      
-      // For children's psihoterapie, adjust service type based on age
-      if (state.patientType === 'child' && state.serviceType === 'psihoterapie-copil') {
-        if (key === '14-18') {
-          state.serviceType = 'psihoterapie-adolescent';
-        }
-        // else keep 'psihoterapie-copil' for 3-13
-      }
-      
-      // Determine next step based on service type
-      const isPsihoterapie = state.serviceType.includes('psihoterapie');
-      
-      if (isPsihoterapie) {
-        // Psihoterapie can be online or cabinet
-        state.step = 'format';
-      } else {
-        // Psihiatrie and Logopedie are cabinet only
-        state.sessionFormat = 'cabinet';
-        state.step = 'location';
-      }
+      if (state.patientType === 'child' && state.serviceType === 'psihoterapie-copil' && key === '14-18') state.serviceType = 'psihoterapie-adolescent';
+      if (state.serviceType.includes('psihoterapie')) state.step = 'format';
+      else { state.sessionFormat = 'cabinet'; state.step = 'location'; }
       render();
     }
 
-    function selectFormat(format) {
-      state.sessionFormat = format;
-      state.step = format === 'online' ? 'language' : 'location';
-      render();
-    }
+    function selectFormat(format) { state.sessionFormat = format; state.step = format === 'online' ? 'language' : 'location'; render(); }
+    function selectLocation(locationId) { state.locationId = locationId; state.step = 'language'; render(); }
+    function selectLanguage(language) { state.language = language; state.step = 'doctor'; render(); }
+    function selectDoctorFromGuided(doctorId) { state.selectedDoctor = state.allDoctors.find(d => d.DoctorId === doctorId); state.step = 'calendar'; render(); }
+    function selectDate(dateStr) { state.selectedDate = dateStr; state.selectedTime = null; state.step = 'time'; render(); }
+    function selectTime(time, startDateTime) { state.selectedTime = { time, startDateTime }; render(); }
+    function goBackFromTime() { state.selectedTime = null; state.step = 'calendar'; render(); }
+    function prevMonth() { state.currentMonth = new Date(state.currentMonth.getFullYear(), state.currentMonth.getMonth() - 1, 1); render(); }
+    function nextMonth() { state.currentMonth = new Date(state.currentMonth.getFullYear(), state.currentMonth.getMonth() + 1, 1); render(); }
 
-    function selectLocation(locationId) {
-      state.locationId = locationId;
-      state.step = 'language';
-      render();
-    }
-
-    function selectLanguage(language) {
-      state.language = language;
-      // Skip reason for now - go directly to doctor selection
-      state.step = 'doctor';
-      render();
-    }
-
-    function selectDoctorFromGuided(doctorId) {
-      state.selectedDoctor = state.allDoctors.find(d => d.DoctorId === doctorId);
-      state.step = 'calendar';
-      render();
-    }
-
-    function selectDate(dateStr) {
-      state.selectedDate = dateStr;
-      state.selectedTime = null;
-      state.step = 'time';
-      render();
-    }
-
-    function selectTime(time, startDateTime) {
-      state.selectedTime = { time, startDateTime };
-      render();
-    }
-
-    function goBackFromTime() {
-      state.selectedTime = null;
-      state.step = 'calendar';
-      render();
-    }
-
-    function handlePhoneChange(value) {
-      state.patientPhone = value;
-      if (value.length >= 10) {
-        checkPhone(value);
-      }
-    }
-
-    function prevMonth() {
-      state.currentMonth = new Date(state.currentMonth.getFullYear(), state.currentMonth.getMonth() - 1, 1);
-      render();
-    }
-
-    function nextMonth() {
-      state.currentMonth = new Date(state.currentMonth.getFullYear(), state.currentMonth.getMonth() + 1, 1);
-      render();
-    }
-
-    // Start
     init();
   </script>
 </body>
