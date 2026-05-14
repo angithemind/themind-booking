@@ -189,14 +189,14 @@
         state.allDoctors=(await docResp.json()).map(normalizeDoctor);
         console.log('Doctors loaded:',state.allDoctors.length);
         state.loading=false; state.step='start'; render();
-        const today=new Date(), dateStart=formatDateISO(today), dateEnd=formatDateISO(new Date(today.getTime()+60*86400000));
-        const [d1,d2]=await Promise.all([fetchAvailability('1',dateStart,dateEnd),fetchAvailability('2',dateStart,dateEnd)]);
+        const [d1,d2]=await Promise.all([fetchAvailabilityChunked('1'),fetchAvailabilityChunked('2')]);
         state.allSlots=[...(d1.slots||[]).map(s=>({...s,LocationId:1})),...(d2.slots||[]).map(s=>({...s,LocationId:2}))];
         state.slotsLoaded=true; console.log('Slots loaded:',state.allSlots.length); render();
       } catch(err) { console.error('Init error:',err); if(!state.allDoctors.length){state.loading=false;state.step='error';state.errorMessage='Nu am putut încărca datele. Te rugăm reîncarcă pagina.';render();} }
     }
 
     async function fetchAvailability(locId,dateStart,dateEnd) { const r=await fetch(CONFIG.availabilityWebhook,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({locationId:locId,dateStart,dateEnd,serviceType:'Psihoterapie adulti'})}); if(!r.ok)throw new Error('Network error'); return await r.json(); }
+    async function fetchAvailabilityChunked(locId) { const today=new Date(),d30=new Date(today.getTime()+30*86400000),d60=new Date(today.getTime()+60*86400000); const [a,b]=await Promise.all([fetchAvailability(locId,formatDateISO(today),formatDateISO(d30)),fetchAvailability(locId,formatDateISO(d30),formatDateISO(d60))]); return { slots: [...(a.slots||[]),...(b.slots||[])] }; }
     function formatDateISO(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
     function parseSlotDateTime(s) { return new Date(s); }
     function getSlotDate(s) { return s.StartDateTime.substring(0,10); }
