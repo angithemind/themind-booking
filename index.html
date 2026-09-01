@@ -209,7 +209,14 @@
     function getInitials(n) { return n?.split(' ').map(x=>x[0]).join('').substring(0,2).toUpperCase()||'?'; }
     const MIN_BOOKING_HOURS=48;
     function getDoctorSlots(did,lid=null) { const mt=new Date(Date.now()+MIN_BOOKING_HOURS*3600000); return state.allSlots.filter(s=>s.DoctorId===did&&(!lid||s.LocationId===parseInt(lid))&&parseSlotDateTime(s.StartDateTime)>=mt); }
-    function getDoctorAvailableDates(did,lid=null) { const d=new Set(); getDoctorSlots(did,lid).forEach(s=>d.add(getSlotDate(s))); return d; }
+    function getDoctorAvailableDates(did, lid=null) {
+      const d = new Set();
+      const dates = new Set(getDoctorSlots(did, lid).map(getSlotDate));
+      dates.forEach(ds => {
+        if (getTimeSlotsForDoctorDate(did, ds, lid, true).length > 0) d.add(ds);
+      });
+      return d;
+    }
     function generateTimeSlots(raw) {
       const mt = Date.now() + MIN_BOOKING_HOURS*3600000;
       const dur = SESSION_DURATION*60000;
