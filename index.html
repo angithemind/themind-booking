@@ -178,6 +178,26 @@
     const HEAD_SLOTS = 2;
     const TAIL_SLOTS = 1;
 
+    // ===== REGULI SLOTURI PE SERVICIU =====
+    // duration = durata sedintei in minute
+    // step     = la cate minute incepe urmatorul slot oferit
+    // grid     = ancorare (30 inseamna ca orele pot incepe doar la :00 sau :30)
+    // Daca se schimba duratele reale, modifica DOAR numerele de aici.
+    const SERVICE_SLOT_RULES = {
+      'psihiatrie-adult':        { duration: 30, step: 30, grid: 30 },
+      'psihiatrie-copil':        { duration: 30, step: 30, grid: 30 },
+      'psihoterapie-adult':      { duration: 50, step: 60, grid: 30 },
+      'psihoterapie-cuplu':      { duration: 50, step: 60, grid: 30 },
+      'psihoterapie-copil':      { duration: 50, step: 60, grid: 30 },
+      'psihoterapie-adolescent': { duration: 50, step: 60, grid: 30 },
+      'logopedie':               { duration: 50, step: 60, grid: 30 }
+    };
+    const DEFAULT_SLOT_RULE = { duration: 50, step: 60, grid: 30 };
+    function getRule() { return SERVICE_SLOT_RULES[state.serviceType] || DEFAULT_SLOT_RULE; }
+
+    // ignora intervalele pe care MedSoft le marcheaza ca indisponibile (concedii, blocaje)
+    function isBookableSlot(s) { return s.IsAvailable !== 0; }
+
     function normalizeDoctor(d) { if (d.DoctorId !== undefined) return d; return { DoctorId:d.doctor_id, Name:d.name, Active:d.active, SpecialtyType:d.specialty_type||[], Photo:d.photo, ShortBio:d.short_bio, LocationIds:d.location_ids, AgeGroupMin:d.age_group_min, AgeGroupMax:d.age_group_max, DoctorType:d.doctor_type, ProblemTags:d.problem_tags||[], Languages:d.languages||[] }; }
     function extractDoctors(raw) { if (!raw||!Array.isArray(raw)) return []; if (raw.length>0&&raw[0]&&raw[0].data) return raw.flatMap(i=>i.data||[]).map(normalizeDoctor); return raw.map(normalizeDoctor); }
     function calculatePrice(st,dt,lang) { const e=lang==='Engleza'; if(st==='psihoterapie-adult'||st==='psihoterapie-copil'||st==='psihoterapie-adolescent') return e?320:290; if(st==='psihoterapie-cuplu') return e?380:320; if(st==='psihiatrie-adult'||st==='psihiatrie-copil') return dt==='Primar'?(e?410:350):(e?360:310); if(st==='logopedie') return e?290:190; return 290; }
@@ -208,7 +228,15 @@
     function getSlotDate(s) { return s.StartDateTime.substring(0,10); }
     function getInitials(n) { return n?.split(' ').map(x=>x[0]).join('').substring(0,2).toUpperCase()||'?'; }
     const MIN_BOOKING_HOURS=48;
-    function getDoctorSlots(did,lid=null) { const mt=new Date(Date.now()+MIN_BOOKING_HOURS*3600000); return state.allSlots.filter(s=>s.DoctorId===did&&(!lid||s.LocationId===parseInt(lid))&&parseSlotDateTime(s.StartDateTime)>=mt); }
+    function getDoctorSlots(did, lid=null) {
+      const mt = new Date(Date.now() + MIN_BOOKING_HOURS*3600000);
+      return state.allSlots.filter(s =>
+        s.DoctorId === did &&
+        isBookableSlot(s) &&
+        (!lid || s.LocationId === parseInt(lid)) &&
+        parseSlotDateTime(s.StartDateTime) >= mt
+      );
+    }
     function getDoctorAvailableDates(did, lid=null) {
       const d = new Set();
       const dates = new Set(getDoctorSlots(did, lid).map(getSlotDate));
@@ -219,27 +247,24 @@
     }
     function generateTimeSlots(raw) {
       const mt = Date.now() + MIN_BOOKING_HOURS*3600000;
-      const dur = SESSION_DURATION*60000;
-      const step = (SESSION_DURATION + BUFFER_MIN)*60000;
+      const rule = getRule();
+      const dur  = rule.duration*60000;
+      const grid = rule.grid*60000;
+      const step = Math.max(grid, Math.ceil(rule.step/rule.grid)*grid);
       const byRange = [];
       raw.forEach(slot => {
         const st = parseSlotDateTime(slot.StartDateTime).getTime();
         const en = parseSlotDateTime(slot.EndDateTime).getTime();
-        const fwd = [], bwd = [];
-        for (let c = st; c + dur <= en; c += step) fwd.push(c);
-        for (let c = en - dur; c >= st; c -= step) bwd.push(c);
-
-        const minSpace = MIN_SPACING_MIN*60000;
-        const kept = [...fwd];
-        bwd.forEach(c => { if (!kept.some(k => Math.abs(k - c) < minSpace)) kept.push(c); });
-
         const out = [];
-        kept.sort((a,b) => a-b).forEach(c => {
-          if (c < mt) return;
+        // Math.ceil(st/grid)*grid ancoreaza startul pe :00 sau :30.
+        // Functioneaza pentru ca MedSoft trimite orele etichetate ca UTC si tot UTC afisam mai jos.
+        // Daca MedSoft schimba formatul datelor, aici trebuie reverificat.
+        for (let c = Math.ceil(st/grid)*grid; c + dur <= en; c += step) {
+          if (c < mt) continue;
           const d = new Date(c);
           const ts = String(d.getUTCHours()).padStart(2,'0') + ':' + String(d.getUTCMinutes()).padStart(2,'0');
           out.push({ time: ts, startMs: c, startDateTime: slot.StartDateTime.substring(0,11)+ts+':00', locationId: slot.LocationId });
-        });
+        }
         if (out.length) byRange.push(out);
       });
       return byRange;
@@ -251,22 +276,19 @@
       });
       return out;
     }
-    function compactSlots(byRange) {
-      if (byRange.length <= 1) return flatten(byRange);
-      return flatten(byRange.map(r =>
-        r.length <= HEAD_SLOTS + TAIL_SLOTS ? r : [...r.slice(0, HEAD_SLOTS), ...r.slice(-TAIL_SLOTS)]
-      ));
-    }
+    // Nu mai comprimam lista la primele doua ore plus ultima.
+    // Ultima era mereu ora ancorata in capatul ferestrei de program, sursa suprapunerilor.
+    function compactSlots(byRange) { return flatten(byRange); }
     function getTimeSlotsForDoctorDate(did, ds, lid=null, showAll=false) {
       const mt = Date.now() + MIN_BOOKING_HOURS*3600000;
       const raw = state.allSlots.filter(s =>
         s.DoctorId === did &&
+        isBookableSlot(s) &&
         s.StartDateTime.startsWith(ds) &&
         (!lid || s.LocationId === parseInt(lid)) &&
         parseSlotDateTime(s.EndDateTime).getTime() >= mt
       );
-      const byRange = generateTimeSlots(raw);
-      return showAll ? flatten(byRange) : compactSlots(byRange);
+      return flatten(generateTimeSlots(raw));
     }
 
     function filterDoctorsByService() { let docs=[...state.allDoctors].filter(d=>d.Active!==false); if(state.serviceType){const sp=SERVICE_TYPES[state.serviceType]?.airtable||'';docs=docs.filter(d=>(d.SpecialtyType||[]).some(s=>s.toLowerCase().trim()===sp.toLowerCase().trim()));} if(state.locationId&&state.sessionFormat==='cabinet')docs=docs.filter(d=>String(d.LocationIds||'').split(',').map(s=>s.trim()).includes(state.locationId)); if(state.selectedAgeGroup){const{min,max}=state.selectedAgeGroup;docs=docs.filter(d=>(d.AgeGroupMin||0)<=max&&(d.AgeGroupMax||99)>=min);} if(state.language)docs=docs.filter(d=>(d.Languages||[]).some(l=>l.toLowerCase().trim()===state.language.toLowerCase().trim())); const loc=state.sessionFormat==='online'?null:state.locationId; if(state.slotsLoaded)docs=docs.map(d=>({...d,slotsCount:getDoctorSlots(d.DoctorId,loc).length})).filter(d=>d.slotsCount>0); else docs=docs.map(d=>({...d,slotsCount:-1})); docs.sort((a,b)=>b.slotsCount-a.slotsCount); state.filteredDoctors=docs; }
@@ -277,7 +299,7 @@
     async function checkPhone(ph) { if(!ph||ph.length<10){state.phoneChecked=false;state.phoneCanBook=true;updatePhoneStatus();return;} if(!CONFIG.phoneCheckWebhook){state.phoneChecked=true;state.phoneCanBook=true;updatePhoneStatus();return;} state.phoneCheckLoading=true;updatePhoneStatus(); try{const r=await fetch(CONFIG.phoneCheckWebhook,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({phoneNumber:ph})});if(r.ok){const d=await r.json();state.phoneCanBook=d.canBook!==false;state.phoneChecked=true;}}catch(e){state.phoneCanBook=true;state.phoneChecked=true;} state.phoneCheckLoading=false;updatePhoneStatus(); }
     function handlePhoneInput(v) { state.patientPhone=v;state.phoneChecked=false;clearTimeout(phoneCheckTimeout);if(v.length>=10)phoneCheckTimeout=setTimeout(()=>checkPhone(v),500);else updatePhoneStatus(); }
 
-    async function submitBooking() { state.bookingInProgress=true;state.step='booking';state.errorMessage=null;state.errorType=null;render(); try{ const[h,m]=state.selectedTime.time.split(':').map(Number),em=h*60+m+SESSION_DURATION,et=String(Math.floor(em/60)).padStart(2,'0')+':'+String(em%60).padStart(2,'0'); const sl=SERVICE_TYPES[state.serviceType]?.api||state.serviceType,dt=parseDateString(state.selectedDate); const dn=['duminică','luni','marți','miercuri','joi','vineri','sâmbătă'],mn=['ianuarie','februarie','martie','aprilie','mai','iunie','iulie','august','septembrie','octombrie','noiembrie','decembrie'],ds=['Dum','Lun','Mar','Mie','Joi','Vin','Sâm'][dt.getDay()]; const dd=`${dn[dt.getDay()]}, ${dt.getDate()} ${mn[dt.getMonth()]} ${dt.getFullYear()}`,td=`${ds} ${String(dt.getDate()).padStart(2,'0')}/${String(dt.getMonth()+1).padStart(2,'0')} ora ${state.selectedTime.time} - ${et}`; const ln=state.sessionFormat==='online'?'Online':(LOCATIONS[state.locationId]?.name||''),pr=calculatePrice(state.serviceType,state.selectedDoctor.DoctorType,state.language); const bd={doctorId:String(state.selectedDoctor.DoctorId),locationId:String(state.sessionFormat==='online'?(state.selectedTime?.locationId||state.locationId||'1'):state.locationId),startDateTime:`${state.selectedDate} ${state.selectedTime.time}:00`,endDateTime:`${state.selectedDate} ${et}:00`,patientName:state.patientName.trim(),patientPhone:state.patientPhone.trim(),patientEmail:state.patientEmail.trim()||'',details:sl,doctorName:state.selectedDoctor.Name,dateDisplay:dd,timeDisplay:td,locationName:ln,sessionFormat:state.sessionFormat||'fizic',language:state.language||'Romana',price:`${pr} RON`}; const r=await fetch(CONFIG.bookingWebhook,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(bd)}); let body=null;try{body=await r.json();}catch(e){} if(r.ok && body?.success!==false && (!body?.Status || body.Status===0)){state.step='success';}else if(r.status===409 || body?.error==='duplicate_booking'){state.step='error';state.errorType='duplicate';state.errorMessage=body?.message||'Aveți deja o programare viitoare. Vă rugăm să anulați programarea existentă sau să ne contactați la 021.781.22.59.';}else if(body?.medsoftMessage && /invalid patient name/i.test(body.medsoftMessage)){state.step='error';state.errorType='invalid_name';state.errorMessage='Numele introdus nu este valid. Te rugăm folosește numele complet (prenume și nume), de exemplu: Ion Popescu.';}else if(body?.error==='booking_failed' || body?.error==='medsoft_error' || (body?.Status>0)){state.step='error';state.errorType='unavailable';state.errorMessage=body?.message||'Nu am putut confirma programarea. Posibil intervalul a devenit indisponibil sau a fost o problemă temporară. Te rugăm să încerci alt interval sau să ne contactezi la 021.781.22.59.';}else{throw new Error('HTTP '+r.status);} }catch(e){console.error('Booking error:',e);state.step='error';if(!state.errorMessage){state.errorType='error';state.errorMessage='Nu am putut finaliza programarea. Te rugăm contactează-ne telefonic la 021.781.22.59';}} state.bookingInProgress=false;render(); }
+    async function submitBooking() { state.bookingInProgress=true;state.step='booking';state.errorMessage=null;state.errorType=null;render(); try{ const[h,m]=state.selectedTime.time.split(':').map(Number),em=h*60+m+getRule().duration,et=String(Math.floor(em/60)).padStart(2,'0')+':'+String(em%60).padStart(2,'0'); const sl=SERVICE_TYPES[state.serviceType]?.api||state.serviceType,dt=parseDateString(state.selectedDate); const dn=['duminică','luni','marți','miercuri','joi','vineri','sâmbătă'],mn=['ianuarie','februarie','martie','aprilie','mai','iunie','iulie','august','septembrie','octombrie','noiembrie','decembrie'],ds=['Dum','Lun','Mar','Mie','Joi','Vin','Sâm'][dt.getDay()]; const dd=`${dn[dt.getDay()]}, ${dt.getDate()} ${mn[dt.getMonth()]} ${dt.getFullYear()}`,td=`${ds} ${String(dt.getDate()).padStart(2,'0')}/${String(dt.getMonth()+1).padStart(2,'0')} ora ${state.selectedTime.time} - ${et}`; const ln=state.sessionFormat==='online'?'Online':(LOCATIONS[state.locationId]?.name||''),pr=calculatePrice(state.serviceType,state.selectedDoctor.DoctorType,state.language); const bd={doctorId:String(state.selectedDoctor.DoctorId),locationId:String(state.sessionFormat==='online'?(state.selectedTime?.locationId||state.locationId||'1'):state.locationId),startDateTime:`${state.selectedDate} ${state.selectedTime.time}:00`,endDateTime:`${state.selectedDate} ${et}:00`,patientName:state.patientName.trim(),patientPhone:state.patientPhone.trim(),patientEmail:state.patientEmail.trim()||'',details:sl,doctorName:state.selectedDoctor.Name,dateDisplay:dd,timeDisplay:td,locationName:ln,sessionFormat:state.sessionFormat||'fizic',language:state.language||'Romana',price:`${pr} RON`}; const r=await fetch(CONFIG.bookingWebhook,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify(bd)}); let body=null;try{body=await r.json();}catch(e){} if(r.ok && body?.success!==false && (!body?.Status || body.Status===0)){state.step='success';}else if(r.status===409 || body?.error==='duplicate_booking'){state.step='error';state.errorType='duplicate';state.errorMessage=body?.message||'Aveți deja o programare viitoare. Vă rugăm să anulați programarea existentă sau să ne contactați la 021.781.22.59.';}else if(body?.medsoftMessage && /invalid patient name/i.test(body.medsoftMessage)){state.step='error';state.errorType='invalid_name';state.errorMessage='Numele introdus nu este valid. Te rugăm folosește numele complet (prenume și nume), de exemplu: Ion Popescu.';}else if(body?.error==='booking_failed' || body?.error==='medsoft_error' || (body?.Status>0)){state.step='error';state.errorType='unavailable';state.errorMessage=body?.message||'Nu am putut confirma programarea. Posibil intervalul a devenit indisponibil sau a fost o problemă temporară. Te rugăm să încerci alt interval sau să ne contactezi la 021.781.22.59.';}else{throw new Error('HTTP '+r.status);} }catch(e){console.error('Booking error:',e);state.step='error';if(!state.errorMessage){state.errorType='error';state.errorMessage='Nu am putut finaliza programarea. Te rugăm contactează-ne telefonic la 021.781.22.59';}} state.bookingInProgress=false;render(); }
 
     function goToStep(s){state.step=s;render();}
     function goBack(){const gs=['start','patient-type','service','age-group','format','location','language','doctor','calendar','time','patient-data','confirm'],ss=['start','search','search-format','search-location','search-language','calendar','time','patient-data','confirm'],steps=state.flowType==='search'?ss:gs;let i=steps.indexOf(state.step);if(i<=0){state.step='start';state.flowType=null;render();return;}i--;if(state.flowType==='guided'){if(steps[i]==='format'&&!state.serviceType?.includes('psihoterapie'))i--;if(steps[i]==='location'&&(state.sessionFormat==='online'||state.serviceType==='psihiatrie-copil'))i--;if(steps[i]==='format'&&!state.serviceType?.includes('psihoterapie'))i--;}state.step=steps[Math.max(0,i)];render();}
@@ -302,7 +324,7 @@
     function renderDoctor(){filterDoctorsByService();if(!state.slotsLoaded)return `<div class="section"><div class="section-header"><button class="back-btn" onclick="goBack()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></button><div class="section-title">Alege specialistul</div></div><div class="loading-container"><div class="spinner"></div><div class="loading-text">Se încarcă disponibilitățile...</div></div></div>`;return `<div class="section"><div class="section-header"><button class="back-btn" onclick="goBack()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></button><div class="section-title">Alege specialistul</div></div><div class="doctors-list">${state.filteredDoctors.length===0?`<div class="empty-state"><div class="icon">😔</div><div>Nu am găsit specialiști disponibili pentru criteriile selectate.</div></div>`:state.filteredDoctors.map(d=>renderDoctorCard(d,'selectDoctorFromGuided')).join('')}</div></div>`;}
     function renderDoctorCard(doc,fn){const langs=(doc.Languages||[]).join(', '),st=doc.slotsCount===-1?'Se încarcă...':doc.slotsCount+' intervale';return `<div class="doctor-card" onclick="${fn}(${doc.DoctorId})"><div class="doctor-avatar">${doc.Photo?`<img src="${doc.Photo}" alt="${doc.Name}">`:getInitials(doc.Name)}</div><div class="doctor-info"><div class="doctor-name">${doc.Name}</div><div class="doctor-specialty">${doc.ShortBio||''}</div><div class="doctor-meta"><span class="doctor-slots">${st}</span>${langs?`<span class="doctor-languages">• ${langs}</span>`:''}</div></div></div>`;}
     function renderCalendar(){const doc=state.selectedDoctor;if(!state.slotsLoaded)return `<div class="section"><div class="section-header"><button class="back-btn" onclick="goBack()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></button><div class="section-title">Alege data</div></div><div class="selected-badge">${doc.Photo?`<img src="${doc.Photo}" alt="${doc.Name}">`:`<div class="initials">${getInitials(doc.Name)}</div>`}<div class="info"><div class="name">${doc.Name}</div><div class="detail">${doc.ShortBio||''}</div></div></div><div class="loading-container"><div class="spinner"></div><div class="loading-text">Se încarcă disponibilitățile...</div></div></div>`;const loc=state.sessionFormat==='online'?null:state.locationId,ad=getDoctorAvailableDates(doc.DoctorId,loc),y=state.currentMonth.getFullYear(),mo=state.currentMonth.getMonth(),fd=(new Date(y,mo,1).getDay()+6)%7,dim=new Date(y,mo+1,0).getDate(),td=new Date();td.setHours(0,0,0,0);const cp=mo>td.getMonth()||y>td.getFullYear();let dh='';for(let i=0;i<fd;i++)dh+='<div class="day empty"></div>';for(let d=1;d<=dim;d++){const dt=new Date(y,mo,d),ds=formatDateISO(dt),ip=dt<td,it=dt.getTime()===td.getTime(),ia=ad.has(ds),is=state.selectedDate===ds;let c='day';if(ip)c+=' past';else if(ia)c+=' available';else c+=' unavailable';if(it)c+=' today';if(is)c+=' selected';dh+=`<div class="${c}" ${!ip&&ia?`onclick="selectDate('${ds}')"`:''} >${d}</div>`;}return `<div class="section"><div class="section-header"><button class="back-btn" onclick="goBack()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></button><div class="section-title">Alege data</div></div><div class="selected-badge">${doc.Photo?`<img src="${doc.Photo}" alt="${doc.Name}">`:`<div class="initials">${getInitials(doc.Name)}</div>`}<div class="info"><div class="name">${doc.Name}</div><div class="detail">${doc.ShortBio||''}</div></div></div><div class="calendar-container"><div class="calendar-header"><span class="month-title">${MONTHS_RO[mo]} ${y}</span><div class="calendar-nav"><button class="nav-btn" onclick="prevMonth()" ${!cp?'disabled':''}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></button><button class="nav-btn" onclick="nextMonth()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></button></div></div><div class="weekdays">${DAYS_RO.map(d=>`<div class="weekday">${d}</div>`).join('')}</div><div class="days-grid">${dh}</div></div></div>`;}
-    function renderTime(){const doc=state.selectedDoctor,loc=state.sessionFormat==='online'?null:state.locationId,ts=getTimeSlotsForDoctorDate(doc.DoctorId,state.selectedDate,loc,state.showAllSlots),dt=parseDateString(state.selectedDate),dd=`${DAY_NAMES[dt.getDay()]}, ${dt.getDate()} ${MONTHS_RO[dt.getMonth()]}`;const slotHTML=s=>`<div class="time-slot ${state.selectedTime?.time===s.time?'selected':''}" onclick="selectTime('${s.time}','${s.startDateTime}',${s.locationId})">${s.time}</div>`;const body=ts.length===0?`<div class="empty-state"><div class="icon">📅</div><div>Nu sunt intervale disponibile în această zi. Te rugăm alege altă dată.</div></div>`:`<div class="time-grid">${ts.map(slotHTML).join('')}</div><div style="text-align:center;margin-top:12px;"><button type="button" onclick="toggleAllSlots()" style="background:none;border:none;padding:4px 8px;font-size:13px;color:#6b7280;text-decoration:underline;cursor:pointer;font-family:inherit;">${state.showAllSlots?'Vezi orele recomandate':'Vezi toate orele disponibile'}</button></div>`;return `<div class="section"><div class="section-header"><button class="back-btn" onclick="goBackFromTime()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></button><div class="section-title">Alege ora</div></div><div class="selected-badge" style="justify-content:center;text-align:center;"><div class="info"><div class="name" style="font-size:15px;">${doc.Name}</div><div class="detail" style="font-size:13px;">📅 ${dd}</div></div></div>${body}${state.selectedTime?`<button class="btn-primary" style="margin-top:16px;" onclick="goToStep('patient-data')">Continuă</button>`:''}</div>`;}
+    function renderTime(){const doc=state.selectedDoctor,loc=state.sessionFormat==='online'?null:state.locationId,ts=getTimeSlotsForDoctorDate(doc.DoctorId,state.selectedDate,loc,state.showAllSlots),dt=parseDateString(state.selectedDate),dd=`${DAY_NAMES[dt.getDay()]}, ${dt.getDate()} ${MONTHS_RO[dt.getMonth()]}`;const slotHTML=s=>`<div class="time-slot ${state.selectedTime?.time===s.time?'selected':''}" onclick="selectTime('${s.time}','${s.startDateTime}',${s.locationId})">${s.time}</div>`;const body=ts.length===0?`<div class="empty-state"><div class="icon">📅</div><div>Nu sunt intervale disponibile în această zi. Te rugăm alege altă dată.</div></div>`:`<div class="time-grid">${ts.map(slotHTML).join('')}</div>`;return `<div class="section"><div class="section-header"><button class="back-btn" onclick="goBackFromTime()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></button><div class="section-title">Alege ora</div></div><div class="selected-badge" style="justify-content:center;text-align:center;"><div class="info"><div class="name" style="font-size:15px;">${doc.Name}</div><div class="detail" style="font-size:13px;">📅 ${dd}</div></div></div>${body}${state.selectedTime?`<button class="btn-primary" style="margin-top:16px;" onclick="goToStep('patient-data')">Continuă</button>`:''}</div>`;}
     function renderPatientData(){const ic=state.patientType==='child',nl=ic?'Numele complet al copilului':'Nume complet',nh=ic?'<div class="form-hint">Prenume și nume (ex: Maria Popescu)</div>':'<div class="form-hint">Prenume și nume (ex: Ion Popescu)</div>';return `<div class="section"><div class="section-header"><button class="back-btn" onclick="goBack()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></button><div class="section-title">Datele tale</div></div><div class="form-section"><div class="form-group"><label class="form-label">${nl} <span class="required">*</span></label><input type="text" id="patient-name" class="form-input" placeholder="${ic?'ex: Maria Popescu':'ex: Ion Popescu'}" value="${state.patientName}" oninput="updatePatientButton()">${nh}<div id="name-hint"></div></div><div class="form-group"><label class="form-label">Număr de telefon <span class="required">*</span></label><input type="tel" id="patient-phone" class="form-input" placeholder="ex: 0751234567" value="${state.patientPhone}" oninput="updatePatientButton();handlePhoneInput(this.value)"><div class="form-hint">Vei primi SMS de confirmare la acest număr</div><div id="phone-status"></div></div><div class="form-group"><label class="form-label">Email <span class="optional">(opțional)</span></label><input type="email" id="patient-email" class="form-input" placeholder="ex: ion@email.com" value="${state.patientEmail}"></div><button class="btn-primary" id="patient-btn" onclick="goToConfirm()" disabled>Vezi rezumatul</button></div></div>`;}
     function isValidFullName(n){ if(!n)return false; const parts=n.trim().split(/\s+/).filter(p=>p.length>=2); return parts.length>=2; }
     function updatePatientButton(){const n=document.getElementById('patient-name')?.value?.trim(),p=document.getElementById('patient-phone')?.value?.trim(),b=document.getElementById('patient-btn');const nameOk=isValidFullName(n);const ne=document.getElementById('name-hint');if(ne){if(n&&!nameOk){ne.innerHTML='<div class="form-error">Te rugăm introdu numele complet (prenume și nume)</div>';}else{ne.innerHTML='';}}if(b)b.disabled=!nameOk||p?.length<10||!state.phoneCanBook;}
