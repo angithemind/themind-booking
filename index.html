@@ -181,18 +181,18 @@
     // ===== REGULI SLOTURI PE SERVICIU =====
     // duration = durata sedintei in minute
     // step     = la cate minute incepe urmatorul slot oferit
-    // grid     = ancorare (30 inseamna ca orele pot incepe doar la :00 sau :30)
+    // grid     = ancorare (60 inseamna ca orele pot incepe doar la fix; 30 ar permite si :30)
     // Daca se schimba duratele reale, modifica DOAR numerele de aici.
     const SERVICE_SLOT_RULES = {
-      'psihiatrie-adult':        { duration: 30, step: 30, grid: 30 },
-      'psihiatrie-copil':        { duration: 30, step: 30, grid: 30 },
-      'psihoterapie-adult':      { duration: 50, step: 60, grid: 30 },
-      'psihoterapie-cuplu':      { duration: 50, step: 60, grid: 30 },
-      'psihoterapie-copil':      { duration: 50, step: 60, grid: 30 },
-      'psihoterapie-adolescent': { duration: 50, step: 60, grid: 30 },
-      'logopedie':               { duration: 50, step: 60, grid: 30 }
+      'psihiatrie-adult':        { duration: 30, step: 60, grid: 60 },
+      'psihiatrie-copil':        { duration: 30, step: 60, grid: 60 },
+      'psihoterapie-adult':      { duration: 50, step: 60, grid: 60 },
+      'psihoterapie-cuplu':      { duration: 50, step: 60, grid: 60 },
+      'psihoterapie-copil':      { duration: 50, step: 60, grid: 60 },
+      'psihoterapie-adolescent': { duration: 50, step: 60, grid: 60 },
+      'logopedie':               { duration: 50, step: 60, grid: 60 }
     };
-    const DEFAULT_SLOT_RULE = { duration: 50, step: 60, grid: 30 };
+    const DEFAULT_SLOT_RULE = { duration: 50, step: 60, grid: 60 };
     function getRule() { return SERVICE_SLOT_RULES[state.serviceType] || DEFAULT_SLOT_RULE; }
 
     // ignora intervalele pe care MedSoft le marcheaza ca indisponibile (concedii, blocaje)
@@ -224,7 +224,15 @@
     async function fetchAvailability(locId,dateStart,dateEnd) { const r=await fetch(CONFIG.availabilityWebhook,{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({locationId:locId,dateStart,dateEnd,serviceType:'Psihoterapie adulti'})}); if(!r.ok)throw new Error('Network error'); return await r.json(); }
     async function fetchAvailabilityChunked(locId) { const today=new Date(),d30=new Date(today.getTime()+30*86400000),d60=new Date(today.getTime()+60*86400000); const [a,b]=await Promise.all([fetchAvailability(locId,formatDateISO(today),formatDateISO(d30)),fetchAvailability(locId,formatDateISO(d30),formatDateISO(d60))]); return { slots: [...(a.slots||[]),...(b.slots||[])] }; }
     function formatDateISO(d) { return `${d.getFullYear()}-${String(d.getMonth()+1).padStart(2,'0')}-${String(d.getDate()).padStart(2,'0')}`; }
-    function parseSlotDateTime(s) { return new Date(s); }
+    // MedSoft trimite StartDateTime fara fus ("2026-09-21 15:00:00") si EndDateTime cu
+    // marcaj UTC ("2026-09-21T17:00:00.000+0000"). Citite cu new Date() ies decalate intre
+    // ele cu fusul browserului. Citim cifrele de ceas ca UTC pentru ambele, consecvent cu
+    // getUTCHours folosit la afisare, ca sa iasa acelasi rezultat in orice fus orar.
+    function parseSlotDateTime(s) {
+      const m = String(s).match(/(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})(?::(\d{2}))?/);
+      if (!m) return new Date(s);
+      return new Date(Date.UTC(+m[1], +m[2]-1, +m[3], +m[4], +m[5], +(m[6]||0)));
+    }
     function getSlotDate(s) { return s.StartDateTime.substring(0,10); }
     function getInitials(n) { return n?.split(' ').map(x=>x[0]).join('').substring(0,2).toUpperCase()||'?'; }
     const MIN_BOOKING_HOURS=48;
@@ -276,9 +284,29 @@
       });
       return out;
     }
-    // Nu mai comprimam lista la primele doua ore plus ultima.
-    // Ultima era mereu ora ancorata in capatul ferestrei de program, sursa suprapunerilor.
-    function compactSlots(byRange) { return flatten(byRange); }
+    // MedSoft intoarce ferestrele LIBERE ale medicului, deja fragmentate in jurul
+    // programarilor si pauzelor existente. Golurile dintre fragmente sunt timpul ocupat.
+    // "Intervale recomandate" = lipite de timpul ocupat: prima ora a fiecarui fragment
+    // (adica imediat dupa ce se termina ceva) si ultima ora care incape in fragment
+    // (adica imediat inainte sa inceapa altceva). Orele din mijloc nu se ofera,
+    // ca sa nu se sparga ziua medicului in gauri nefolosibile.
+    function compactSlots(byRange) {
+      const frags = byRange.filter(r => r.length).sort((a,b) => a[0].startMs - b[0].startMs);
+      if (!frags.length) return [];
+      const picked = [];
+      frags.forEach((r, i) => {
+        if (i > 0) picked.push(r[0]);                        // imediat dupa ce se termina ceva
+        if (i < frags.length-1) picked.push(r[r.length-1]);  // imediat inainte sa inceapa altceva
+      });
+      // Zi fara nicio programare: o singura fereastra, deci nimic de care sa ne lipim.
+      // Ca sa nu ramana ziua complet nerezervabila, oferim capetele programului.
+      if (!picked.length) {
+        const r = frags[0];
+        picked.push(r[0]);
+        if (r.length > 1) picked.push(r[r.length-1]);
+      }
+      return flatten([picked]);
+    }
     function getTimeSlotsForDoctorDate(did, ds, lid=null, showAll=false) {
       const mt = Date.now() + MIN_BOOKING_HOURS*3600000;
       const raw = state.allSlots.filter(s =>
@@ -288,7 +316,7 @@
         (!lid || s.LocationId === parseInt(lid)) &&
         parseSlotDateTime(s.EndDateTime).getTime() >= mt
       );
-      return flatten(generateTimeSlots(raw));
+      return compactSlots(generateTimeSlots(raw));
     }
 
     function filterDoctorsByService() { let docs=[...state.allDoctors].filter(d=>d.Active!==false); if(state.serviceType){const sp=SERVICE_TYPES[state.serviceType]?.airtable||'';docs=docs.filter(d=>(d.SpecialtyType||[]).some(s=>s.toLowerCase().trim()===sp.toLowerCase().trim()));} if(state.locationId&&state.sessionFormat==='cabinet')docs=docs.filter(d=>String(d.LocationIds||'').split(',').map(s=>s.trim()).includes(state.locationId)); if(state.selectedAgeGroup){const{min,max}=state.selectedAgeGroup;docs=docs.filter(d=>(d.AgeGroupMin||0)<=max&&(d.AgeGroupMax||99)>=min);} if(state.language)docs=docs.filter(d=>(d.Languages||[]).some(l=>l.toLowerCase().trim()===state.language.toLowerCase().trim())); const loc=state.sessionFormat==='online'?null:state.locationId; if(state.slotsLoaded)docs=docs.map(d=>({...d,slotsCount:getDoctorSlots(d.DoctorId,loc).length})).filter(d=>d.slotsCount>0); else docs=docs.map(d=>({...d,slotsCount:-1})); docs.sort((a,b)=>b.slotsCount-a.slotsCount); state.filteredDoctors=docs; }
