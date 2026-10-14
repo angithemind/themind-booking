@@ -235,92 +235,144 @@
     }
     function getSlotDate(s) { return s.StartDateTime.substring(0,10); }
     function getInitials(n) { return n?.split(' ').map(x=>x[0]).join('').substring(0,2).toUpperCase()||'?'; }
+    // ===== LOGICA COMUNA SLOTURI (identica in widget si in garda din Make) =====
+    // Daca o schimbi aici, copiaz-o la fel si in modulul de cod din scenariul Make "Programare Clienti".
+    //
+    // MedSoft intoarce doar ferestrele LIBERE ale medicului. Golurile dintre ele sunt timp ocupat.
+    // Regula clinicii: oferim online doar orele LIPITE de timp ocupat, ca ziua medicului sa se umple
+    // compact. Programul de lucru al medicului nu vine din MedSoft, asa ca il deducem din aceeasi zi
+    // a saptamanii din celelalte saptamani (cea mai frecventa ora de inceput si de sfarsit). Asa stim
+    // daca o fereastra se termina pentru ca se termina programul sau pentru ca urmeaza o programare.
+    //
+    // Pe o zi:
+    //  - ferestrele care se ating sau se suprapun se unesc (si dispar dublurile);
+    //  - prima ora a unei ferestre se ofera daca inaintea ei e ceva ocupat;
+    //  - ultima ora care incape intr-o fereastra se ofera daca dupa ea urmeaza ceva ocupat;
+    //  - zi fara nimic ocupat: se ofera doar prima ora din program;
+    //  - orele din pragul minim de rezervare nu se ofera, dar pragul NU muta ora oferita mai tarziu.
+    // Toate orele sunt "ceas de perete" Bucuresti, tratate ca UTC (asa le trimite MedSoft).
+    var TM_SLOTS = (function () {
+      var DAY = 86400000;
+      function t(s) {
+        var m = String(s || '').match(/(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})(?::(\d{2}))?/);
+        return m ? Date.UTC(+m[1], +m[2] - 1, +m[3], +m[4], +m[5], +(m[6] || 0)) : NaN;
+      }
+      function pad(n) { return String(n).padStart(2, '0'); }
+      function dayStr(ms) { var d = new Date(ms); return d.getUTCFullYear() + '-' + pad(d.getUTCMonth() + 1) + '-' + pad(d.getUTCDate()); }
+      function hhmm(ms) { var d = new Date(ms); return pad(d.getUTCHours()) + ':' + pad(d.getUTCMinutes()); }
+      // ora curenta la Bucuresti, ca ceas de perete etichetat UTC (comparabila cu orele din MedSoft)
+      function nowWall() {
+        try {
+          var p = {};
+          new Intl.DateTimeFormat('en-GB', { timeZone: 'Europe/Bucharest', year: 'numeric', month: '2-digit', day: '2-digit', hour: '2-digit', minute: '2-digit', second: '2-digit', hourCycle: 'h23' })
+            .formatToParts(new Date()).forEach(function (x) { p[x.type] = x.value; });
+          var v = Date.UTC(+p.year, +p.month - 1, +p.day, +p.hour % 24, +p.minute, +p.second);
+          if (!isNaN(v)) return v;
+        } catch (e) {}
+        return Date.now();
+      }
+      function mode(vals, preferLow) {
+        var c = {}, best = null, bestN = 0;
+        vals.forEach(function (v) { c[v] = (c[v] || 0) + 1; });
+        Object.keys(c).forEach(function (k) {
+          var v = +k, n = c[k];
+          if (n > bestN || (n === bestN && (preferLow ? v < best : v > best))) { best = v; bestN = n; }
+        });
+        return bestN >= 2 ? best : null; // o singura aparitie nu e un tipar
+      }
+      // ferestrele unui medic, pe locatie si zi, unite si sortate
+      function index(slots, doctorId) {
+        var byLoc = {};
+        (slots || []).forEach(function (s) {
+          if (!s || String(s.DoctorId) !== String(doctorId) || s.IsAvailable === 0) return;
+          var a = t(s.StartDateTime), b = t(s.EndDateTime);
+          if (!(b > a)) return;
+          var loc = String(s.LocationId), d = dayStr(a);
+          ((byLoc[loc] = byLoc[loc] || {})[d] = byLoc[loc][d] || []).push([a, b]);
+        });
+        Object.keys(byLoc).forEach(function (loc) {
+          Object.keys(byLoc[loc]).forEach(function (d) {
+            var iv = byLoc[loc][d].sort(function (x, y) { return x[0] - y[0]; }), out = [];
+            iv.forEach(function (w) {
+              var last = out[out.length - 1];
+              if (last && w[0] <= last[1]) last[1] = Math.max(last[1], w[1]); else out.push([w[0], w[1]]);
+            });
+            byLoc[loc][d] = out;
+          });
+        });
+        return byLoc;
+      }
+      // opts: { locationId (sau null = toate), durationMin, gridMin, stepMin, minBookingHours, nowMs? }
+      function offered(slots, doctorId, date, opts) {
+        var dur = opts.durationMin * 60000, grid = opts.gridMin * 60000;
+        var step = Math.max(grid, Math.ceil(opts.stepMin / opts.gridMin) * grid);
+        var now = opts.nowMs != null ? opts.nowMs : nowWall();
+        var cutoff = now + opts.minBookingHours * 3600000, today = dayStr(now);
+        var byLoc = opts._index || index(slots, doctorId), res = [];
+        Object.keys(byLoc).forEach(function (loc) {
+          if (opts.locationId != null && opts.locationId !== '' && String(opts.locationId) !== loc) return;
+          var days = byLoc[loc], iv = days[date];
+          if (!iv || !iv.length) return;
+          var wd = new Date(t(date + ' 00:00')).getUTCDay(), starts = [], ends = [];
+          Object.keys(days).forEach(function (d) {
+            if (d === date || d <= today || new Date(t(d + ' 00:00')).getUTCDay() !== wd) return;
+            var w = days[d];
+            starts.push(w[0][0] % DAY); ends.push(w[w.length - 1][1] % DAY);
+          });
+          var shiftStart = mode(starts, true), shiftEnd = mode(ends, false);
+          var busyBefore = shiftStart != null && iv[0][0] % DAY > shiftStart;
+          var busyAfter = shiftEnd != null && iv[iv.length - 1][1] % DAY < shiftEnd;
+          var anyBusy = iv.length > 1 || busyBefore || busyAfter, picked = [];
+          iv.forEach(function (w, i) {
+            var first = Math.ceil(w[0] / grid) * grid;
+            if (first + dur > w[1]) return; // fereastra prea scurta pentru o sedinta
+            var last = first + Math.floor((w[1] - dur - first) / step) * step;
+            if (!anyBusy) { if (i === 0) picked.push(first); return; }
+            if (i > 0 || busyBefore) picked.push(first);
+            if (i < iv.length - 1 || busyAfter) picked.push(last);
+          });
+          picked.forEach(function (c) { if (c >= cutoff) res.push({ startMs: c, time: hhmm(c), locationId: +loc }); });
+        });
+        var seen = {};
+        return res.sort(function (a, b) { return a.startMs - b.startMs; })
+          .filter(function (s) { if (seen[s.time]) return false; seen[s.time] = 1; return true; });
+      }
+      function dates(slots, doctorId, opts) {
+        var byLoc = opts._index || index(slots, doctorId), set = {};
+        var today = dayStr(opts.nowMs != null ? opts.nowMs : nowWall());
+        Object.keys(byLoc).forEach(function (loc) {
+          if (opts.locationId != null && opts.locationId !== '' && String(opts.locationId) !== loc) return;
+          Object.keys(byLoc[loc]).forEach(function (d) { if (d >= today) set[d] = 1; });
+        });
+        return Object.keys(set).sort();
+      }
+      return { t: t, index: index, offered: offered, dates: dates, nowWall: nowWall };
+    })();
     const MIN_BOOKING_HOURS=48;
-    function getDoctorSlots(did, lid=null) {
-      const mt = new Date(Date.now() + MIN_BOOKING_HOURS*3600000);
-      return state.allSlots.filter(s =>
-        s.DoctorId === did &&
-        isBookableSlot(s) &&
-        (!lid || s.LocationId === parseInt(lid)) &&
-        parseSlotDateTime(s.StartDateTime) >= mt
-      );
+    function slotOpts(lid) { const r = getRule(); return { locationId: lid || null, durationMin: r.duration, gridMin: r.grid, stepMin: r.step, minBookingHours: MIN_BOOKING_HOURS }; }
+    // index pe medic, refacut doar cand se reincarca disponibilitatea
+    let slotIndexCache = { src: null, map: {} };
+    function doctorIndex(did) {
+      if (slotIndexCache.src !== state.allSlots) slotIndexCache = { src: state.allSlots, map: {} };
+      if (!slotIndexCache.map[did]) slotIndexCache.map[did] = TM_SLOTS.index(state.allSlots, did);
+      return slotIndexCache.map[did];
+    }
+    function getTimeSlotsForDoctorDate(did, ds, lid=null) {
+      const o = slotOpts(lid); o._index = doctorIndex(did);
+      return TM_SLOTS.offered(null, did, ds, o).map(s => ({ ...s, startDateTime: ds + ' ' + s.time + ':00' }));
     }
     function getDoctorAvailableDates(did, lid=null) {
-      const d = new Set();
-      const dates = new Set(getDoctorSlots(did, lid).map(getSlotDate));
-      dates.forEach(ds => {
-        if (getTimeSlotsForDoctorDate(did, ds, lid, true).length > 0) d.add(ds);
-      });
-      return d;
+      const o = slotOpts(lid); o._index = doctorIndex(did);
+      return new Set(TM_SLOTS.dates(null, did, o).filter(ds => getTimeSlotsForDoctorDate(did, ds, lid).length > 0));
     }
-    function generateTimeSlots(raw) {
-      const mt = Date.now() + MIN_BOOKING_HOURS*3600000;
-      const rule = getRule();
-      const dur  = rule.duration*60000;
-      const grid = rule.grid*60000;
-      const step = Math.max(grid, Math.ceil(rule.step/rule.grid)*grid);
-      const byRange = [];
-      raw.forEach(slot => {
-        const st = parseSlotDateTime(slot.StartDateTime).getTime();
-        const en = parseSlotDateTime(slot.EndDateTime).getTime();
-        const out = [];
-        // Math.ceil(st/grid)*grid ancoreaza startul pe :00 sau :30.
-        // Functioneaza pentru ca MedSoft trimite orele etichetate ca UTC si tot UTC afisam mai jos.
-        // Daca MedSoft schimba formatul datelor, aici trebuie reverificat.
-        for (let c = Math.ceil(st/grid)*grid; c + dur <= en; c += step) {
-          if (c < mt) continue;
-          const d = new Date(c);
-          const ts = String(d.getUTCHours()).padStart(2,'0') + ':' + String(d.getUTCMinutes()).padStart(2,'0');
-          out.push({ time: ts, startMs: c, startDateTime: slot.StartDateTime.substring(0,11)+ts+':00', locationId: slot.LocationId });
-        }
-        if (out.length) byRange.push(out);
-      });
-      return byRange;
-    }
-    function flatten(byRange) {
-      const seen = new Set(), out = [];
-      byRange.flat().sort((a,b) => a.startMs - b.startMs).forEach(s => {
-        if (!seen.has(s.time)) { seen.add(s.time); out.push(s); }
-      });
-      return out;
-    }
-    // MedSoft intoarce ferestrele LIBERE ale medicului, deja fragmentate in jurul
-    // programarilor si pauzelor existente. Golurile dintre fragmente sunt timpul ocupat.
-    // "Intervale recomandate" = lipite de timpul ocupat: prima ora a fiecarui fragment
-    // (adica imediat dupa ce se termina ceva) si ultima ora care incape in fragment
-    // (adica imediat inainte sa inceapa altceva). Orele din mijloc nu se ofera,
-    // ca sa nu se sparga ziua medicului in gauri nefolosibile.
-    function compactSlots(byRange) {
-      const frags = byRange.filter(r => r.length).sort((a,b) => a[0].startMs - b[0].startMs);
-      if (!frags.length) return [];
-      const picked = [];
-      frags.forEach((r, i) => {
-        if (i > 0) picked.push(r[0]);                        // imediat dupa ce se termina ceva
-        if (i < frags.length-1) picked.push(r[r.length-1]);  // imediat inainte sa inceapa altceva
-      });
-      // Zi fara nicio programare: o singura fereastra, deci nimic de care sa ne lipim.
-      // Ca sa nu ramana ziua complet nerezervabila, oferim capetele programului.
-      if (!picked.length) {
-        const r = frags[0];
-        picked.push(r[0]);
-        if (r.length > 1) picked.push(r[r.length-1]);
-      }
-      return flatten([picked]);
-    }
-    function getTimeSlotsForDoctorDate(did, ds, lid=null, showAll=false) {
-      const mt = Date.now() + MIN_BOOKING_HOURS*3600000;
-      const raw = state.allSlots.filter(s =>
-        s.DoctorId === did &&
-        isBookableSlot(s) &&
-        s.StartDateTime.startsWith(ds) &&
-        (!lid || s.LocationId === parseInt(lid)) &&
-        parseSlotDateTime(s.EndDateTime).getTime() >= mt
-      );
-      return compactSlots(generateTimeSlots(raw));
+    // numarul de ore oferite efectiv pacientului (nu numarul de ferestre brute)
+    function getDoctorSlotCount(did, lid=null) {
+      const o = slotOpts(lid); o._index = doctorIndex(did);
+      return TM_SLOTS.dates(null, did, o).reduce((n, ds) => n + getTimeSlotsForDoctorDate(did, ds, lid).length, 0);
     }
 
-    function filterDoctorsByService() { let docs=[...state.allDoctors].filter(d=>d.Active!==false); if(state.serviceType){const sp=SERVICE_TYPES[state.serviceType]?.airtable||'';docs=docs.filter(d=>(d.SpecialtyType||[]).some(s=>s.toLowerCase().trim()===sp.toLowerCase().trim()));} if(state.locationId&&state.sessionFormat==='cabinet')docs=docs.filter(d=>String(d.LocationIds||'').split(',').map(s=>s.trim()).includes(state.locationId)); if(state.selectedAgeGroup){const{min,max}=state.selectedAgeGroup;docs=docs.filter(d=>(d.AgeGroupMin||0)<=max&&(d.AgeGroupMax||99)>=min);} if(state.language)docs=docs.filter(d=>(d.Languages||[]).some(l=>l.toLowerCase().trim()===state.language.toLowerCase().trim())); const loc=state.sessionFormat==='online'?null:state.locationId; if(state.slotsLoaded)docs=docs.map(d=>({...d,slotsCount:getDoctorSlots(d.DoctorId,loc).length})).filter(d=>d.slotsCount>0); else docs=docs.map(d=>({...d,slotsCount:-1})); docs.sort((a,b)=>b.slotsCount-a.slotsCount); state.filteredDoctors=docs; }
-    function searchDoctors(q) { let docs=state.allDoctors.filter(d=>d.Active!==false); if(state.slotsLoaded)docs=docs.map(d=>({...d,slotsCount:getDoctorSlots(d.DoctorId).length})).filter(d=>d.slotsCount>0); else docs=docs.map(d=>({...d,slotsCount:-1})); if(q&&q.trim()){const ql=q.toLowerCase().trim();docs=docs.filter(d=>(d.Name||'').toLowerCase().includes(ql)||(d.ShortBio||'').toLowerCase().includes(ql)||(d.SpecialtyType||[]).join(' ').toLowerCase().includes(ql));} docs.sort((a,b)=>b.slotsCount-a.slotsCount); state.filteredDoctors=docs; }
+    function filterDoctorsByService() { let docs=[...state.allDoctors].filter(d=>d.Active!==false); if(state.serviceType){const sp=SERVICE_TYPES[state.serviceType]?.airtable||'';docs=docs.filter(d=>(d.SpecialtyType||[]).some(s=>s.toLowerCase().trim()===sp.toLowerCase().trim()));} if(state.locationId&&state.sessionFormat==='cabinet')docs=docs.filter(d=>String(d.LocationIds||'').split(',').map(s=>s.trim()).includes(state.locationId)); if(state.selectedAgeGroup){const{min,max}=state.selectedAgeGroup;docs=docs.filter(d=>(d.AgeGroupMin||0)<=max&&(d.AgeGroupMax||99)>=min);} if(state.language)docs=docs.filter(d=>(d.Languages||[]).some(l=>l.toLowerCase().trim()===state.language.toLowerCase().trim())); const loc=state.sessionFormat==='online'?null:state.locationId; if(state.slotsLoaded)docs=docs.map(d=>({...d,slotsCount:getDoctorSlotCount(d.DoctorId,loc)})).filter(d=>d.slotsCount>0); else docs=docs.map(d=>({...d,slotsCount:-1})); docs.sort((a,b)=>b.slotsCount-a.slotsCount); state.filteredDoctors=docs; }
+    function searchDoctors(q) { let docs=state.allDoctors.filter(d=>d.Active!==false); if(state.slotsLoaded)docs=docs.map(d=>({...d,slotsCount:getDoctorSlotCount(d.DoctorId)})).filter(d=>d.slotsCount>0); else docs=docs.map(d=>({...d,slotsCount:-1})); if(q&&q.trim()){const ql=q.toLowerCase().trim();docs=docs.filter(d=>(d.Name||'').toLowerCase().includes(ql)||(d.ShortBio||'').toLowerCase().includes(ql)||(d.SpecialtyType||[]).join(' ').toLowerCase().includes(ql));} docs.sort((a,b)=>b.slotsCount-a.slotsCount); state.filteredDoctors=docs; }
     function getReasonsList() { if(state.serviceType==='logopedie')return REASONS_LOGOPEDIE; if(state.patientType==='child')return REASONS_CHILD; return REASONS_ADULT; }
 
     let phoneCheckTimeout=null;
@@ -352,7 +404,7 @@
     function renderDoctor(){filterDoctorsByService();if(!state.slotsLoaded)return `<div class="section"><div class="section-header"><button class="back-btn" onclick="goBack()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></button><div class="section-title">Alege specialistul</div></div><div class="loading-container"><div class="spinner"></div><div class="loading-text">Se încarcă disponibilitățile...</div></div></div>`;return `<div class="section"><div class="section-header"><button class="back-btn" onclick="goBack()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></button><div class="section-title">Alege specialistul</div></div><div class="doctors-list">${state.filteredDoctors.length===0?`<div class="empty-state"><div class="icon">😔</div><div>Nu am găsit specialiști disponibili pentru criteriile selectate.</div></div>`:state.filteredDoctors.map(d=>renderDoctorCard(d,'selectDoctorFromGuided')).join('')}</div></div>`;}
     function renderDoctorCard(doc,fn){const langs=(doc.Languages||[]).join(', '),st=doc.slotsCount===-1?'Se încarcă...':doc.slotsCount+' intervale';return `<div class="doctor-card" onclick="${fn}(${doc.DoctorId})"><div class="doctor-avatar">${doc.Photo?`<img src="${doc.Photo}" alt="${doc.Name}">`:getInitials(doc.Name)}</div><div class="doctor-info"><div class="doctor-name">${doc.Name}</div><div class="doctor-specialty">${doc.ShortBio||''}</div><div class="doctor-meta"><span class="doctor-slots">${st}</span>${langs?`<span class="doctor-languages">• ${langs}</span>`:''}</div></div></div>`;}
     function renderCalendar(){const doc=state.selectedDoctor;if(!state.slotsLoaded)return `<div class="section"><div class="section-header"><button class="back-btn" onclick="goBack()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></button><div class="section-title">Alege data</div></div><div class="selected-badge">${doc.Photo?`<img src="${doc.Photo}" alt="${doc.Name}">`:`<div class="initials">${getInitials(doc.Name)}</div>`}<div class="info"><div class="name">${doc.Name}</div><div class="detail">${doc.ShortBio||''}</div></div></div><div class="loading-container"><div class="spinner"></div><div class="loading-text">Se încarcă disponibilitățile...</div></div></div>`;const loc=state.sessionFormat==='online'?null:state.locationId,ad=getDoctorAvailableDates(doc.DoctorId,loc),y=state.currentMonth.getFullYear(),mo=state.currentMonth.getMonth(),fd=(new Date(y,mo,1).getDay()+6)%7,dim=new Date(y,mo+1,0).getDate(),td=new Date();td.setHours(0,0,0,0);const cp=mo>td.getMonth()||y>td.getFullYear();let dh='';for(let i=0;i<fd;i++)dh+='<div class="day empty"></div>';for(let d=1;d<=dim;d++){const dt=new Date(y,mo,d),ds=formatDateISO(dt),ip=dt<td,it=dt.getTime()===td.getTime(),ia=ad.has(ds),is=state.selectedDate===ds;let c='day';if(ip)c+=' past';else if(ia)c+=' available';else c+=' unavailable';if(it)c+=' today';if(is)c+=' selected';dh+=`<div class="${c}" ${!ip&&ia?`onclick="selectDate('${ds}')"`:''} >${d}</div>`;}return `<div class="section"><div class="section-header"><button class="back-btn" onclick="goBack()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></button><div class="section-title">Alege data</div></div><div class="selected-badge">${doc.Photo?`<img src="${doc.Photo}" alt="${doc.Name}">`:`<div class="initials">${getInitials(doc.Name)}</div>`}<div class="info"><div class="name">${doc.Name}</div><div class="detail">${doc.ShortBio||''}</div></div></div><div class="calendar-container"><div class="calendar-header"><span class="month-title">${MONTHS_RO[mo]} ${y}</span><div class="calendar-nav"><button class="nav-btn" onclick="prevMonth()" ${!cp?'disabled':''}><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></button><button class="nav-btn" onclick="nextMonth()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 18l6-6-6-6"/></svg></button></div></div><div class="weekdays">${DAYS_RO.map(d=>`<div class="weekday">${d}</div>`).join('')}</div><div class="days-grid">${dh}</div></div></div>`;}
-    function renderTime(){const doc=state.selectedDoctor,loc=state.sessionFormat==='online'?null:state.locationId,ts=getTimeSlotsForDoctorDate(doc.DoctorId,state.selectedDate,loc,state.showAllSlots),dt=parseDateString(state.selectedDate),dd=`${DAY_NAMES[dt.getDay()]}, ${dt.getDate()} ${MONTHS_RO[dt.getMonth()]}`;const slotHTML=s=>`<div class="time-slot ${state.selectedTime?.time===s.time?'selected':''}" onclick="selectTime('${s.time}','${s.startDateTime}',${s.locationId})">${s.time}</div>`;const body=ts.length===0?`<div class="empty-state"><div class="icon">📅</div><div>Nu sunt intervale disponibile în această zi. Te rugăm alege altă dată.</div></div>`:`<div class="time-grid">${ts.map(slotHTML).join('')}</div>`;return `<div class="section"><div class="section-header"><button class="back-btn" onclick="goBackFromTime()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></button><div class="section-title">Alege ora</div></div><div class="selected-badge" style="justify-content:center;text-align:center;"><div class="info"><div class="name" style="font-size:15px;">${doc.Name}</div><div class="detail" style="font-size:13px;">📅 ${dd}</div></div></div>${body}${state.selectedTime?`<button class="btn-primary" style="margin-top:16px;" onclick="goToStep('patient-data')">Continuă</button>`:''}</div>`;}
+    function renderTime(){const doc=state.selectedDoctor,loc=state.sessionFormat==='online'?null:state.locationId,ts=getTimeSlotsForDoctorDate(doc.DoctorId,state.selectedDate,loc),dt=parseDateString(state.selectedDate),dd=`${DAY_NAMES[dt.getDay()]}, ${dt.getDate()} ${MONTHS_RO[dt.getMonth()]}`;const slotHTML=s=>`<div class="time-slot ${state.selectedTime?.time===s.time?'selected':''}" onclick="selectTime('${s.time}','${s.startDateTime}',${s.locationId})">${s.time}</div>`;const body=ts.length===0?`<div class="empty-state"><div class="icon">📅</div><div>Nu sunt intervale disponibile în această zi. Te rugăm alege altă dată.</div></div>`:`<div class="time-grid">${ts.map(slotHTML).join('')}</div>`;return `<div class="section"><div class="section-header"><button class="back-btn" onclick="goBackFromTime()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></button><div class="section-title">Alege ora</div></div><div class="selected-badge" style="justify-content:center;text-align:center;"><div class="info"><div class="name" style="font-size:15px;">${doc.Name}</div><div class="detail" style="font-size:13px;">📅 ${dd}</div></div></div>${body}${state.selectedTime?`<button class="btn-primary" style="margin-top:16px;" onclick="goToStep('patient-data')">Continuă</button>`:''}</div>`;}
     function renderPatientData(){const ic=state.patientType==='child',nl=ic?'Numele complet al copilului':'Nume complet',nh=ic?'<div class="form-hint">Prenume și nume (ex: Maria Popescu)</div>':'<div class="form-hint">Prenume și nume (ex: Ion Popescu)</div>';return `<div class="section"><div class="section-header"><button class="back-btn" onclick="goBack()"><svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M15 18l-6-6 6-6"/></svg></button><div class="section-title">Datele tale</div></div><div class="form-section"><div class="form-group"><label class="form-label">${nl} <span class="required">*</span></label><input type="text" id="patient-name" class="form-input" placeholder="${ic?'ex: Maria Popescu':'ex: Ion Popescu'}" value="${state.patientName}" oninput="updatePatientButton()">${nh}<div id="name-hint"></div></div><div class="form-group"><label class="form-label">Număr de telefon <span class="required">*</span></label><input type="tel" id="patient-phone" class="form-input" placeholder="ex: 0751234567" value="${state.patientPhone}" oninput="updatePatientButton();handlePhoneInput(this.value)"><div class="form-hint">Vei primi SMS de confirmare la acest număr</div><div id="phone-status"></div></div><div class="form-group"><label class="form-label">Email <span class="optional">(opțional)</span></label><input type="email" id="patient-email" class="form-input" placeholder="ex: ion@email.com" value="${state.patientEmail}"></div><button class="btn-primary" id="patient-btn" onclick="goToConfirm()" disabled>Vezi rezumatul</button></div></div>`;}
     function isValidFullName(n){ if(!n)return false; const parts=n.trim().split(/\s+/).filter(p=>p.length>=2); return parts.length>=2; }
     function updatePatientButton(){const n=document.getElementById('patient-name')?.value?.trim(),p=document.getElementById('patient-phone')?.value?.trim(),b=document.getElementById('patient-btn');const nameOk=isValidFullName(n);const ne=document.getElementById('name-hint');if(ne){if(n&&!nameOk){ne.innerHTML='<div class="form-error">Te rugăm introdu numele complet (prenume și nume)</div>';}else{ne.innerHTML='';}}if(b)b.disabled=!nameOk||p?.length<10||!state.phoneCanBook;}
